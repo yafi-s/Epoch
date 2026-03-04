@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "epoch"
+version = "0.1.0"
+description = "Distributed hyperparameter optimization using genetic algorithms"
+authors = ["Yafi"]
+readme = "README.md"
+packages = [
+    { include = "ga" },
+    { include = "worker" },
+    { include = "metrics" },
+    { include = "benchmarks" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+grpcio = "^1.62.0"
+grpcio-tools = "^1.62.0"
+protobuf = "^4.25.0"
+tensorflow = "^2.16.0"
+numpy = "^1.26.0"
+optuna = "^3.6.0"
+matplotlib = "^3.8.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
+black = "^24.0.0"
+ruff = "^0.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.isort]
+known-first-party = ["ga", "worker", "metrics", "benchmarks"]
+
+[tool.pytest.ini_options]
+testpaths = ["ga/tests", "worker/tests", "metrics/tests", "benchmarks/tests"]

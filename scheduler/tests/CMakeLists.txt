@@ -1,0 +1,13 @@
+include(GoogleTest)
+
+add_executable(test_job_queue test_job_queue.cc)
+target_link_libraries(test_job_queue PRIVATE epoch_scheduler_lib GTest::gtest_main)
+gtest_discover_tests(test_job_queue)
+
+add_executable(test_worker_pool test_worker_pool.cc)
+target_link_libraries(test_worker_pool PRIVATE epoch_scheduler_lib GTest::gtest_main GTest::gmock)
+gtest_discover_tests(test_worker_pool)
+
+add_executable(test_metrics_collector test_metrics_collector.cc)
+target_link_libraries(test_metrics_collector PRIVATE epoch_scheduler_lib GTest::gtest_main)
+gtest_discover_tests(test_metrics_collector)

@@ -1,0 +1,174 @@
+syntax = "proto3";
+
+package epoch;
+
+option cc_enable_arenas = true;
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Optimizer {
+    OPTIMIZER_UNSPECIFIED = 0;
+    OPTIMIZER_SGD = 1;
+    OPTIMIZER_ADAM = 2;
+    OPTIMIZER_RMSPROP = 3;
+    OPTIMIZER_ADAMW = 4;
+}
+
+enum Activation {
+    ACTIVATION_UNSPECIFIED = 0;
+    ACTIVATION_RELU = 1;
+    ACTIVATION_ELU = 2;
+    ACTIVATION_SELU = 3;
+    ACTIVATION_TANH = 4;
+    ACTIVATION_SWISH = 5;
+}
+
+enum JobStatus {
+    JOB_STATUS_UNSPECIFIED = 0;
+    JOB_STATUS_COMPLETED = 1;
+    JOB_STATUS_FAILED = 2;
+    JOB_STATUS_TIMEOUT = 3;
+}
+
+// ─── Messages ────────────────────────────────────────────────────────────────
+
+// Hyperparameter configuration sent to workers for model training.
+message HyperparamConfig {
+    // Learning rate
+    double learning_rate = 1;
+
+    // Mini-batch size
+    int32 batch_size = 2;
+
+    // Optimizer algorithm
+    Optimizer optimizer = 3;
+
+    // Number of filters per Conv2D layer (defines depth of the CNN)
+    repeated int32 conv_filters = 10;
+
+    // Kernel size for Conv2D layers
+    int32 kernel_size = 11;
+
+    // Dense layer sizes after flattening
+    repeated int32 dense_units = 12;
+
+    // Dropout rate applied after dense layers
+    double dropout_rate = 20;
+
+    // Activation function for hidden layers
+    Activation activation = 21;
+
+    // Number of training epochs
+    int32 epochs = 30;
+
+    // Dataset identifier (e.g. "mnist", "cifar10")
+    string dataset = 31;
+}
+
+// A single training job assigned to a worker.
+message JobAssignment {
+    string job_id = 1;
+    int32 generation_id = 2;
+    HyperparamConfig config = 3;
+}
+
+// Result of a single training job.
+message TrainingResult {
+    string job_id = 1;
+    int32 generation_id = 2;
+    string worker_id = 3;
+    double validation_accuracy = 4;
+    double training_loss = 5;
+    int64 training_time_ms = 6;
+    JobStatus status = 7;
+    string error_message = 8;
+}
+
+// ─── Worker ↔ Scheduler bidirectional stream messages ────────────────────────
+
+message WorkerRegistration {
+    string worker_id = 1;
+    int32 num_gpus = 2;
+    int64 memory_mb = 3;
+    // Shared registration secret for scheduler-side worker authentication.
+    string auth_key = 4;
+}
+
+message Heartbeat {
+    string worker_id = 1;
+    int64 timestamp_ms = 2;
+}
+
+// Envelope sent by workers on the bidirectional stream.
+message WorkerMessage {
+    oneof payload {
+        WorkerRegistration registration = 1;
+        Heartbeat heartbeat = 2;
+        TrainingResult result = 3;
+    }
+}
+
+// Envelope sent by the scheduler on the bidirectional stream.
+message SchedulerMessage {
+    oneof payload {
+        JobAssignment job_assignment = 1;
+        bool shutdown = 2;
+    }
+}
+
+// ─── GA Controller → Scheduler control RPCs ──────────────────────────────────
+
+message SubmitGenerationRequest {
+    int32 generation_id = 1;
+    repeated HyperparamConfig configs = 2;
+}
+
+message SubmitGenerationResponse {
+    bool accepted = 1;
+    int32 num_jobs = 2;
+}
+
+message GetResultsRequest {
+    int32 generation_id = 1;
+}
+
+message GenerationRuntimeMetrics {
+    // Scheduler stream write latency while dispatching assignments.
+    double dispatch_latency_p50_ms = 1;
+    double dispatch_latency_p90_ms = 2;
+    double dispatch_latency_max_ms = 3;
+
+    // Gap between a worker finishing a job and receiving its next assignment.
+    double worker_idle_gap_p50_ms = 4;
+    double worker_idle_gap_p90_ms = 5;
+    double worker_idle_gap_max_ms = 6;
+
+    // Queue wait from enqueue to dispatch.
+    double queue_wait_p50_ms = 7;
+    double queue_wait_p90_ms = 8;
+    double queue_wait_max_ms = 9;
+
+    uint32 dispatch_samples = 10;
+    uint32 idle_gap_samples = 11;
+    uint32 queue_wait_samples = 12;
+}
+
+message GetResultsResponse {
+    bool complete = 1;
+    repeated TrainingResult results = 2;
+    int64 wall_clock_ms = 3;
+    GenerationRuntimeMetrics runtime_metrics = 4;
+}
+
+// ─── Services ────────────────────────────────────────────────────────────────
+
+// Bidirectional streaming between workers and the scheduler.
+service WorkerService {
+    rpc Connect(stream WorkerMessage) returns (stream SchedulerMessage);
+}
+
+// Unary RPCs for the GA controller to drive the scheduler.
+service SchedulerControl {
+    rpc SubmitGeneration(SubmitGenerationRequest) returns (SubmitGenerationResponse);
+    rpc GetGenerationResults(GetResultsRequest) returns (GetResultsResponse);
+}

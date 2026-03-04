@@ -1,0 +1,50 @@
+# Build artifacts
+build/
+build-wsl/
+out/
+dist/
+*.egg-info/
+
+# Generated runtime outputs
+results/
+metrics/*.jsonl
+*.log
+*.err.log
+*.out.log
+*.pid
+
+# Local secrets and machine config
+.env
+.env.*
+!.env.example
+!.env.*.example
+.modal.toml
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+.pytest_cache/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TensorFlow
+*.h5
+*.keras
+checkpoint/
+
+# Local binaries/tools
+tools/ngrok/
+tools/*.zip
