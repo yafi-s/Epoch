@@ -21,6 +21,7 @@ class RankedRun:
     run_id: str
     summary_path: Path
     jobs_per_sec: float
+    throughput_rank_jps: float
     queue_overhead_p90_pct: float
     avg_job_ms: float
     best_fitness_peak: float
@@ -56,10 +57,15 @@ def _load_summary(path: Path) -> RankedRun | None:
     if best_fitness_peak is None:
         best_fitness_peak = 0.0
 
+    jobs_per_sec = float(data.get("jobs_per_sec", 0.0))
+    # jobs_per_sec is the canonical throughput metric across summaries.
+    throughput_rank_jps = jobs_per_sec
+
     return RankedRun(
         run_id=str(run_id),
         summary_path=path,
-        jobs_per_sec=float(data.get("jobs_per_sec", 0.0)),
+        jobs_per_sec=jobs_per_sec,
+        throughput_rank_jps=throughput_rank_jps,
         queue_overhead_p90_pct=float(data.get("queue_overhead_p90_pct", 0.0)),
         avg_job_ms=float(data.get("avg_job_ms_raw", data.get("avg_job_ms", 0.0))),
         best_fitness_peak=float(best_fitness_peak),
@@ -73,7 +79,7 @@ def _rank(runs: list[RankedRun]) -> list[RankedRun]:
     return sorted(
         runs,
         key=lambda r: (
-            -r.jobs_per_sec,
+            -r.throughput_rank_jps,
             r.queue_overhead_p90_pct,
             r.avg_job_ms,
             -r.best_fitness_peak,

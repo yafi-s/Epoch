@@ -29,6 +29,8 @@ int main(int argc, char* argv[]) {
               << "╚══════════════════════════════════════╝\n"
               << "Listening on: " << config.listen_address << "\n"
               << "Dispatch interval: " << config.dispatch_interval_ms << "ms\n"
+              << "Dispatch strategy: " << epoch::DispatchStrategyToString(config.dispatch_strategy)
+              << "\n"
               << "Heartbeat timeout: " << config.heartbeat_timeout_ms << "ms\n"
               << "Worker auth: " << (config.worker_auth_key.empty() ? "disabled" : "enabled") << "\n"
               << endl;

@@ -14,6 +14,7 @@ class GenerationMetrics:
     Attributes:
         generation: Generation number.
         best_fitness: Highest fitness in this generation.
+        best_so_far: Running best fitness up to and including this generation.
         avg_fitness: Mean fitness across the population.
         worst_fitness: Lowest fitness in this generation.
         wall_clock_ms: Wall-clock time for the generation in milliseconds.
@@ -21,6 +22,7 @@ class GenerationMetrics:
 
     generation: int
     best_fitness: float
+    best_so_far: float
     avg_fitness: float
     worst_fitness: float
     wall_clock_ms: int
@@ -45,12 +47,16 @@ class MetricsStore:
         avg_fitness: float,
         worst_fitness: float,
         wall_clock_ms: int,
+        best_so_far: float | None = None,
     ) -> None:
         """Record metrics for a completed generation."""
+        if best_so_far is None:
+            best_so_far = best_fitness
         self.generations.append(
             GenerationMetrics(
                 generation=generation,
                 best_fitness=best_fitness,
+                best_so_far=best_so_far,
                 avg_fitness=avg_fitness,
                 worst_fitness=worst_fitness,
                 wall_clock_ms=wall_clock_ms,
@@ -99,6 +105,7 @@ class MetricsStore:
                 {
                     "generation": g.generation,
                     "best_fitness": g.best_fitness,
+                    "best_so_far": g.best_so_far,
                     "avg_fitness": g.avg_fitness,
                     "worst_fitness": g.worst_fitness,
                     "wall_clock_ms": g.wall_clock_ms,
@@ -120,6 +127,7 @@ class MetricsStore:
                 GenerationMetrics(
                     generation=g["generation"],
                     best_fitness=g["best_fitness"],
+                    best_so_far=g.get("best_so_far", g["best_fitness"]),
                     avg_fitness=g["avg_fitness"],
                     worst_fitness=g["worst_fitness"],
                     wall_clock_ms=g["wall_clock_ms"],

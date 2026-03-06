@@ -51,6 +51,7 @@ TEST(MetricsCollectorTest, RecordsQueueWaitSummary) {
     EXPECT_DOUBLE_EQ(metrics.queue_wait.p50_ms, 8.0);
     EXPECT_DOUBLE_EQ(metrics.queue_wait.p90_ms, 15.0);
     EXPECT_DOUBLE_EQ(metrics.queue_wait.max_ms, 15.0);
+    EXPECT_DOUBLE_EQ(metrics.queue_wait_min_ms, 1.0);
 }
 
 TEST(MetricsCollectorTest, StartGenerationClearsPriorSamples) {

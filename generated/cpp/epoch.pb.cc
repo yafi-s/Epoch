@@ -100,6 +100,40 @@ struct SubmitGenerationResponseDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SubmitGenerationResponseDefaultTypeInternal _SubmitGenerationResponse_default_instance_;
 
+inline constexpr SchedulerStatusResponse::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : connected_workers_{0u},
+        idle_workers_{0u},
+        busy_workers_{0u},
+        pending_jobs_{0u},
+        _cached_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SchedulerStatusResponse::SchedulerStatusResponse(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
+struct SchedulerStatusResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SchedulerStatusResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SchedulerStatusResponseDefaultTypeInternal() {}
+  union {
+    SchedulerStatusResponse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SchedulerStatusResponseDefaultTypeInternal _SchedulerStatusResponse_default_instance_;
+      template <typename>
+PROTOBUF_CONSTEXPR SchedulerStatusRequest::SchedulerStatusRequest(::_pbi::ConstantInitialized) {}
+struct SchedulerStatusRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SchedulerStatusRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SchedulerStatusRequestDefaultTypeInternal() {}
+  union {
+    SchedulerStatusRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SchedulerStatusRequestDefaultTypeInternal _SchedulerStatusRequest_default_instance_;
+
 inline constexpr HyperparamConfig::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : conv_filters_{},
@@ -186,6 +220,7 @@ inline constexpr GenerationRuntimeMetrics::Impl_::Impl_(
         queue_wait_max_ms_{0},
         dispatch_samples_{0u},
         idle_gap_samples_{0u},
+        queue_wait_min_ms_{0},
         queue_wait_samples_{0u},
         _cached_size_{0} {}
 
@@ -308,7 +343,7 @@ struct SchedulerMessageDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SchedulerMessageDefaultTypeInternal _SchedulerMessage_default_instance_;
 }  // namespace epoch
-static ::_pb::Metadata file_level_metadata_epoch_2eproto[12];
+static ::_pb::Metadata file_level_metadata_epoch_2eproto[14];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_epoch_2eproto[3];
 static constexpr const ::_pb::ServiceDescriptor**
     file_level_service_descriptors_epoch_2eproto = nullptr;
@@ -453,6 +488,7 @@ const ::uint32_t TableStruct_epoch_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
     PROTOBUF_FIELD_OFFSET(::epoch::GenerationRuntimeMetrics, _impl_.queue_wait_p50_ms_),
     PROTOBUF_FIELD_OFFSET(::epoch::GenerationRuntimeMetrics, _impl_.queue_wait_p90_ms_),
     PROTOBUF_FIELD_OFFSET(::epoch::GenerationRuntimeMetrics, _impl_.queue_wait_max_ms_),
+    PROTOBUF_FIELD_OFFSET(::epoch::GenerationRuntimeMetrics, _impl_.queue_wait_min_ms_),
     PROTOBUF_FIELD_OFFSET(::epoch::GenerationRuntimeMetrics, _impl_.dispatch_samples_),
     PROTOBUF_FIELD_OFFSET(::epoch::GenerationRuntimeMetrics, _impl_.idle_gap_samples_),
     PROTOBUF_FIELD_OFFSET(::epoch::GenerationRuntimeMetrics, _impl_.queue_wait_samples_),
@@ -472,6 +508,26 @@ const ::uint32_t TableStruct_epoch_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
     ~0u,
     ~0u,
     0,
+    ~0u,  // no _has_bits_
+    PROTOBUF_FIELD_OFFSET(::epoch::SchedulerStatusRequest, _internal_metadata_),
+    ~0u,  // no _extensions_
+    ~0u,  // no _oneof_case_
+    ~0u,  // no _weak_field_map_
+    ~0u,  // no _inlined_string_donated_
+    ~0u,  // no _split_
+    ~0u,  // no sizeof(Split)
+    ~0u,  // no _has_bits_
+    PROTOBUF_FIELD_OFFSET(::epoch::SchedulerStatusResponse, _internal_metadata_),
+    ~0u,  // no _extensions_
+    ~0u,  // no _oneof_case_
+    ~0u,  // no _weak_field_map_
+    ~0u,  // no _inlined_string_donated_
+    ~0u,  // no _split_
+    ~0u,  // no sizeof(Split)
+    PROTOBUF_FIELD_OFFSET(::epoch::SchedulerStatusResponse, _impl_.connected_workers_),
+    PROTOBUF_FIELD_OFFSET(::epoch::SchedulerStatusResponse, _impl_.idle_workers_),
+    PROTOBUF_FIELD_OFFSET(::epoch::SchedulerStatusResponse, _impl_.busy_workers_),
+    PROTOBUF_FIELD_OFFSET(::epoch::SchedulerStatusResponse, _impl_.pending_jobs_),
 };
 
 static const ::_pbi::MigrationSchema
@@ -487,7 +543,9 @@ static const ::_pbi::MigrationSchema
         {103, -1, -1, sizeof(::epoch::SubmitGenerationResponse)},
         {113, -1, -1, sizeof(::epoch::GetResultsRequest)},
         {122, -1, -1, sizeof(::epoch::GenerationRuntimeMetrics)},
-        {142, 154, -1, sizeof(::epoch::GetResultsResponse)},
+        {143, 155, -1, sizeof(::epoch::GetResultsResponse)},
+        {159, -1, -1, sizeof(::epoch::SchedulerStatusRequest)},
+        {167, -1, -1, sizeof(::epoch::SchedulerStatusResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -503,6 +561,8 @@ static const ::_pb::Message* const file_default_instances[] = {
     &::epoch::_GetResultsRequest_default_instance_._instance,
     &::epoch::_GenerationRuntimeMetrics_default_instance_._instance,
     &::epoch::_GetResultsResponse_default_instance_._instance,
+    &::epoch::_SchedulerStatusRequest_default_instance_._instance,
+    &::epoch::_SchedulerStatusResponse_default_instance_._instance,
 };
 const char descriptor_table_protodef_epoch_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
     "\n\013epoch.proto\022\005epoch\"\200\002\n\020HyperparamConfi"
@@ -534,7 +594,7 @@ const char descriptor_table_protodef_epoch_2eproto[] PROTOBUF_SECTION_VARIABLE(p
     "d\030\001 \001(\005\022(\n\007configs\030\002 \003(\0132\027.epoch.Hyperpa"
     "ramConfig\">\n\030SubmitGenerationResponse\022\020\n"
     "\010accepted\030\001 \001(\010\022\020\n\010num_jobs\030\002 \001(\005\"*\n\021Get"
-    "ResultsRequest\022\025\n\rgeneration_id\030\001 \001(\005\"\376\002"
+    "ResultsRequest\022\025\n\rgeneration_id\030\001 \001(\005\"\231\003"
     "\n\030GenerationRuntimeMetrics\022\037\n\027dispatch_l"
     "atency_p50_ms\030\001 \001(\001\022\037\n\027dispatch_latency_"
     "p90_ms\030\002 \001(\001\022\037\n\027dispatch_latency_max_ms\030"
@@ -542,42 +602,48 @@ const char descriptor_table_protodef_epoch_2eproto[] PROTOBUF_SECTION_VARIABLE(p
     "\026worker_idle_gap_p90_ms\030\005 \001(\001\022\036\n\026worker_"
     "idle_gap_max_ms\030\006 \001(\001\022\031\n\021queue_wait_p50_"
     "ms\030\007 \001(\001\022\031\n\021queue_wait_p90_ms\030\010 \001(\001\022\031\n\021q"
-    "ueue_wait_max_ms\030\t \001(\001\022\030\n\020dispatch_sampl"
-    "es\030\n \001(\r\022\030\n\020idle_gap_samples\030\013 \001(\r\022\032\n\022qu"
-    "eue_wait_samples\030\014 \001(\r\"\237\001\n\022GetResultsRes"
-    "ponse\022\020\n\010complete\030\001 \001(\010\022&\n\007results\030\002 \003(\013"
-    "2\025.epoch.TrainingResult\022\025\n\rwall_clock_ms"
-    "\030\003 \001(\003\0228\n\017runtime_metrics\030\004 \001(\0132\037.epoch."
-    "GenerationRuntimeMetrics*y\n\tOptimizer\022\031\n"
-    "\025OPTIMIZER_UNSPECIFIED\020\000\022\021\n\rOPTIMIZER_SG"
-    "D\020\001\022\022\n\016OPTIMIZER_ADAM\020\002\022\025\n\021OPTIMIZER_RMS"
-    "PROP\020\003\022\023\n\017OPTIMIZER_ADAMW\020\004*\221\001\n\nActivati"
-    "on\022\032\n\026ACTIVATION_UNSPECIFIED\020\000\022\023\n\017ACTIVA"
-    "TION_RELU\020\001\022\022\n\016ACTIVATION_ELU\020\002\022\023\n\017ACTIV"
-    "ATION_SELU\020\003\022\023\n\017ACTIVATION_TANH\020\004\022\024\n\020ACT"
-    "IVATION_SWISH\020\005*p\n\tJobStatus\022\032\n\026JOB_STAT"
-    "US_UNSPECIFIED\020\000\022\030\n\024JOB_STATUS_COMPLETED"
-    "\020\001\022\025\n\021JOB_STATUS_FAILED\020\002\022\026\n\022JOB_STATUS_"
-    "TIMEOUT\020\0032M\n\rWorkerService\022<\n\007Connect\022\024."
-    "epoch.WorkerMessage\032\027.epoch.SchedulerMes"
-    "sage(\0010\0012\264\001\n\020SchedulerControl\022S\n\020SubmitG"
-    "eneration\022\036.epoch.SubmitGenerationReques"
-    "t\032\037.epoch.SubmitGenerationResponse\022K\n\024Ge"
-    "tGenerationResults\022\030.epoch.GetResultsReq"
-    "uest\032\031.epoch.GetResultsResponseB\003\370\001\001b\006pr"
-    "oto3"
+    "ueue_wait_max_ms\030\t \001(\001\022\031\n\021queue_wait_min"
+    "_ms\030\r \001(\001\022\030\n\020dispatch_samples\030\n \001(\r\022\030\n\020i"
+    "dle_gap_samples\030\013 \001(\r\022\032\n\022queue_wait_samp"
+    "les\030\014 \001(\r\"\237\001\n\022GetResultsResponse\022\020\n\010comp"
+    "lete\030\001 \001(\010\022&\n\007results\030\002 \003(\0132\025.epoch.Trai"
+    "ningResult\022\025\n\rwall_clock_ms\030\003 \001(\003\0228\n\017run"
+    "time_metrics\030\004 \001(\0132\037.epoch.GenerationRun"
+    "timeMetrics\"\030\n\026SchedulerStatusRequest\"v\n"
+    "\027SchedulerStatusResponse\022\031\n\021connected_wo"
+    "rkers\030\001 \001(\r\022\024\n\014idle_workers\030\002 \001(\r\022\024\n\014bus"
+    "y_workers\030\003 \001(\r\022\024\n\014pending_jobs\030\004 \001(\r*y\n"
+    "\tOptimizer\022\031\n\025OPTIMIZER_UNSPECIFIED\020\000\022\021\n"
+    "\rOPTIMIZER_SGD\020\001\022\022\n\016OPTIMIZER_ADAM\020\002\022\025\n\021"
+    "OPTIMIZER_RMSPROP\020\003\022\023\n\017OPTIMIZER_ADAMW\020\004"
+    "*\221\001\n\nActivation\022\032\n\026ACTIVATION_UNSPECIFIE"
+    "D\020\000\022\023\n\017ACTIVATION_RELU\020\001\022\022\n\016ACTIVATION_E"
+    "LU\020\002\022\023\n\017ACTIVATION_SELU\020\003\022\023\n\017ACTIVATION_"
+    "TANH\020\004\022\024\n\020ACTIVATION_SWISH\020\005*p\n\tJobStatu"
+    "s\022\032\n\026JOB_STATUS_UNSPECIFIED\020\000\022\030\n\024JOB_STA"
+    "TUS_COMPLETED\020\001\022\025\n\021JOB_STATUS_FAILED\020\002\022\026"
+    "\n\022JOB_STATUS_TIMEOUT\020\0032M\n\rWorkerService\022"
+    "<\n\007Connect\022\024.epoch.WorkerMessage\032\027.epoch"
+    ".SchedulerMessage(\0010\0012\211\002\n\020SchedulerContr"
+    "ol\022S\n\020SubmitGeneration\022\036.epoch.SubmitGen"
+    "erationRequest\032\037.epoch.SubmitGenerationR"
+    "esponse\022K\n\024GetGenerationResults\022\030.epoch."
+    "GetResultsRequest\032\031.epoch.GetResultsResp"
+    "onse\022S\n\022GetSchedulerStatus\022\035.epoch.Sched"
+    "ulerStatusRequest\032\036.epoch.SchedulerStatu"
+    "sResponseB\003\370\001\001b\006proto3"
 };
 static ::absl::once_flag descriptor_table_epoch_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_epoch_2eproto = {
     false,
     false,
-    2404,
+    2662,
     descriptor_table_protodef_epoch_2eproto,
     "epoch.proto",
     &descriptor_table_epoch_2eproto_once,
     nullptr,
     0,
-    12,
+    14,
     schemas,
     file_default_instances,
     TableStruct_epoch_2eproto::offsets,
@@ -3539,15 +3605,15 @@ const char* GenerationRuntimeMetrics::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 12, 0, 0, 2> GenerationRuntimeMetrics::_table_ = {
+const ::_pbi::TcParseTable<4, 13, 0, 0, 2> GenerationRuntimeMetrics::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    12, 120,  // max_field_number, fast_idx_mask
+    13, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294963200,  // skipmap
+    4294959104,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    12,  // num_field_entries
+    13,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     &_GenerationRuntimeMetrics_default_instance_._instance,
@@ -3590,7 +3656,9 @@ const ::_pbi::TcParseTable<4, 12, 0, 0, 2> GenerationRuntimeMetrics::_table_ = {
     // uint32 queue_wait_samples = 12;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(GenerationRuntimeMetrics, _impl_.queue_wait_samples_), 63>(),
      {96, 63, 0, PROTOBUF_FIELD_OFFSET(GenerationRuntimeMetrics, _impl_.queue_wait_samples_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // double queue_wait_min_ms = 13;
+    {::_pbi::TcParser::FastF64S1,
+     {105, 63, 0, PROTOBUF_FIELD_OFFSET(GenerationRuntimeMetrics, _impl_.queue_wait_min_ms_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
   }}, {{
@@ -3632,6 +3700,9 @@ const ::_pbi::TcParseTable<4, 12, 0, 0, 2> GenerationRuntimeMetrics::_table_ = {
     // uint32 queue_wait_samples = 12;
     {PROTOBUF_FIELD_OFFSET(GenerationRuntimeMetrics, _impl_.queue_wait_samples_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUInt32)},
+    // double queue_wait_min_ms = 13;
+    {PROTOBUF_FIELD_OFFSET(GenerationRuntimeMetrics, _impl_.queue_wait_min_ms_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kDouble)},
   }},
   // no aux_entries
   {{
@@ -3774,6 +3845,18 @@ const ::_pbi::TcParseTable<4, 12, 0, 0, 2> GenerationRuntimeMetrics::_table_ = {
         12, this->_internal_queue_wait_samples(), target);
   }
 
+  // double queue_wait_min_ms = 13;
+  static_assert(sizeof(::uint64_t) == sizeof(double),
+                "Code assumes ::uint64_t and double are the same size.");
+  double tmp_queue_wait_min_ms = this->_internal_queue_wait_min_ms();
+  ::uint64_t raw_queue_wait_min_ms;
+  memcpy(&raw_queue_wait_min_ms, &tmp_queue_wait_min_ms, sizeof(tmp_queue_wait_min_ms));
+  if (raw_queue_wait_min_ms != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteDoubleToArray(
+        13, this->_internal_queue_wait_min_ms(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -3893,6 +3976,16 @@ const ::_pbi::TcParseTable<4, 12, 0, 0, 2> GenerationRuntimeMetrics::_table_ = {
         this->_internal_idle_gap_samples());
   }
 
+  // double queue_wait_min_ms = 13;
+  static_assert(sizeof(::uint64_t) == sizeof(double),
+                "Code assumes ::uint64_t and double are the same size.");
+  double tmp_queue_wait_min_ms = this->_internal_queue_wait_min_ms();
+  ::uint64_t raw_queue_wait_min_ms;
+  memcpy(&raw_queue_wait_min_ms, &tmp_queue_wait_min_ms, sizeof(tmp_queue_wait_min_ms));
+  if (raw_queue_wait_min_ms != 0) {
+    total_size += 9;
+  }
+
   // uint32 queue_wait_samples = 12;
   if (this->_internal_queue_wait_samples() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
@@ -3995,6 +4088,14 @@ void GenerationRuntimeMetrics::MergeImpl(::google::protobuf::Message& to_msg, co
   }
   if (from._internal_idle_gap_samples() != 0) {
     _this->_internal_set_idle_gap_samples(from._internal_idle_gap_samples());
+  }
+  static_assert(sizeof(::uint64_t) == sizeof(double),
+                "Code assumes ::uint64_t and double are the same size.");
+  double tmp_queue_wait_min_ms = from._internal_queue_wait_min_ms();
+  ::uint64_t raw_queue_wait_min_ms;
+  memcpy(&raw_queue_wait_min_ms, &tmp_queue_wait_min_ms, sizeof(tmp_queue_wait_min_ms));
+  if (raw_queue_wait_min_ms != 0) {
+    _this->_internal_set_queue_wait_min_ms(from._internal_queue_wait_min_ms());
   }
   if (from._internal_queue_wait_samples() != 0) {
     _this->_internal_set_queue_wait_samples(from._internal_queue_wait_samples());
@@ -4328,6 +4429,289 @@ void GetResultsResponse::InternalSwap(GetResultsResponse* PROTOBUF_RESTRICT othe
   return ::_pbi::AssignDescriptors(
       &descriptor_table_epoch_2eproto_getter, &descriptor_table_epoch_2eproto_once,
       file_level_metadata_epoch_2eproto[11]);
+}
+// ===================================================================
+
+class SchedulerStatusRequest::_Internal {
+ public:
+};
+
+SchedulerStatusRequest::SchedulerStatusRequest(::google::protobuf::Arena* arena)
+    : ::google::protobuf::internal::ZeroFieldsBase(arena) {
+  // @@protoc_insertion_point(arena_constructor:epoch.SchedulerStatusRequest)
+}
+SchedulerStatusRequest::SchedulerStatusRequest(
+    ::google::protobuf::Arena* arena,
+    const SchedulerStatusRequest& from)
+    : ::google::protobuf::internal::ZeroFieldsBase(arena) {
+  SchedulerStatusRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+
+  // @@protoc_insertion_point(copy_constructor:epoch.SchedulerStatusRequest)
+}
+
+
+
+
+
+
+
+
+
+::google::protobuf::Metadata SchedulerStatusRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_epoch_2eproto_getter, &descriptor_table_epoch_2eproto_once,
+      file_level_metadata_epoch_2eproto[12]);
+}
+// ===================================================================
+
+class SchedulerStatusResponse::_Internal {
+ public:
+};
+
+SchedulerStatusResponse::SchedulerStatusResponse(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:epoch.SchedulerStatusResponse)
+}
+SchedulerStatusResponse::SchedulerStatusResponse(
+    ::google::protobuf::Arena* arena, const SchedulerStatusResponse& from)
+    : SchedulerStatusResponse(arena) {
+  MergeFrom(from);
+}
+inline PROTOBUF_NDEBUG_INLINE SchedulerStatusResponse::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : _cached_size_{0} {}
+
+inline void SchedulerStatusResponse::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, connected_workers_),
+           0,
+           offsetof(Impl_, pending_jobs_) -
+               offsetof(Impl_, connected_workers_) +
+               sizeof(Impl_::pending_jobs_));
+}
+SchedulerStatusResponse::~SchedulerStatusResponse() {
+  // @@protoc_insertion_point(destructor:epoch.SchedulerStatusResponse)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void SchedulerStatusResponse::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  _impl_.~Impl_();
+}
+
+PROTOBUF_NOINLINE void SchedulerStatusResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:epoch.SchedulerStatusResponse)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.connected_workers_, 0, static_cast<::size_t>(
+      reinterpret_cast<char*>(&_impl_.pending_jobs_) -
+      reinterpret_cast<char*>(&_impl_.connected_workers_)) + sizeof(_impl_.pending_jobs_));
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+const char* SchedulerStatusResponse::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  return ptr;
+}
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 4, 0, 0, 2> SchedulerStatusResponse::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    4, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967280,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    4,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_SchedulerStatusResponse_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    // uint32 pending_jobs = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SchedulerStatusResponse, _impl_.pending_jobs_), 63>(),
+     {32, 63, 0, PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.pending_jobs_)}},
+    // uint32 connected_workers = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SchedulerStatusResponse, _impl_.connected_workers_), 63>(),
+     {8, 63, 0, PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.connected_workers_)}},
+    // uint32 idle_workers = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SchedulerStatusResponse, _impl_.idle_workers_), 63>(),
+     {16, 63, 0, PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.idle_workers_)}},
+    // uint32 busy_workers = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SchedulerStatusResponse, _impl_.busy_workers_), 63>(),
+     {24, 63, 0, PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.busy_workers_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint32 connected_workers = 1;
+    {PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.connected_workers_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUInt32)},
+    // uint32 idle_workers = 2;
+    {PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.idle_workers_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUInt32)},
+    // uint32 busy_workers = 3;
+    {PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.busy_workers_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUInt32)},
+    // uint32 pending_jobs = 4;
+    {PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.pending_jobs_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+
+::uint8_t* SchedulerStatusResponse::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:epoch.SchedulerStatusResponse)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // uint32 connected_workers = 1;
+  if (this->_internal_connected_workers() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+        1, this->_internal_connected_workers(), target);
+  }
+
+  // uint32 idle_workers = 2;
+  if (this->_internal_idle_workers() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+        2, this->_internal_idle_workers(), target);
+  }
+
+  // uint32 busy_workers = 3;
+  if (this->_internal_busy_workers() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+        3, this->_internal_busy_workers(), target);
+  }
+
+  // uint32 pending_jobs = 4;
+  if (this->_internal_pending_jobs() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+        4, this->_internal_pending_jobs(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:epoch.SchedulerStatusResponse)
+  return target;
+}
+
+::size_t SchedulerStatusResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:epoch.SchedulerStatusResponse)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // uint32 connected_workers = 1;
+  if (this->_internal_connected_workers() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+        this->_internal_connected_workers());
+  }
+
+  // uint32 idle_workers = 2;
+  if (this->_internal_idle_workers() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+        this->_internal_idle_workers());
+  }
+
+  // uint32 busy_workers = 3;
+  if (this->_internal_busy_workers() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+        this->_internal_busy_workers());
+  }
+
+  // uint32 pending_jobs = 4;
+  if (this->_internal_pending_jobs() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+        this->_internal_pending_jobs());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::google::protobuf::Message::ClassData SchedulerStatusResponse::_class_data_ = {
+    SchedulerStatusResponse::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
+};
+const ::google::protobuf::Message::ClassData* SchedulerStatusResponse::GetClassData() const {
+  return &_class_data_;
+}
+
+void SchedulerStatusResponse::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
+  auto* const _this = static_cast<SchedulerStatusResponse*>(&to_msg);
+  auto& from = static_cast<const SchedulerStatusResponse&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:epoch.SchedulerStatusResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_connected_workers() != 0) {
+    _this->_internal_set_connected_workers(from._internal_connected_workers());
+  }
+  if (from._internal_idle_workers() != 0) {
+    _this->_internal_set_idle_workers(from._internal_idle_workers());
+  }
+  if (from._internal_busy_workers() != 0) {
+    _this->_internal_set_busy_workers(from._internal_busy_workers());
+  }
+  if (from._internal_pending_jobs() != 0) {
+    _this->_internal_set_pending_jobs(from._internal_pending_jobs());
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void SchedulerStatusResponse::CopyFrom(const SchedulerStatusResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:epoch.SchedulerStatusResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+PROTOBUF_NOINLINE bool SchedulerStatusResponse::IsInitialized() const {
+  return true;
+}
+
+::_pbi::CachedSize* SchedulerStatusResponse::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void SchedulerStatusResponse::InternalSwap(SchedulerStatusResponse* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.pending_jobs_)
+      + sizeof(SchedulerStatusResponse::_impl_.pending_jobs_)
+      - PROTOBUF_FIELD_OFFSET(SchedulerStatusResponse, _impl_.connected_workers_)>(
+          reinterpret_cast<char*>(&_impl_.connected_workers_),
+          reinterpret_cast<char*>(&other->_impl_.connected_workers_));
+}
+
+::google::protobuf::Metadata SchedulerStatusResponse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_epoch_2eproto_getter, &descriptor_table_epoch_2eproto_once,
+      file_level_metadata_epoch_2eproto[13]);
 }
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace epoch

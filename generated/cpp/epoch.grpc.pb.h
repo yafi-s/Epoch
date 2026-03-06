@@ -234,6 +234,13 @@ class SchedulerControl final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::epoch::GetResultsResponse>> PrepareAsyncGetGenerationResults(::grpc::ClientContext* context, const ::epoch::GetResultsRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::epoch::GetResultsResponse>>(PrepareAsyncGetGenerationResultsRaw(context, request, cq));
     }
+    virtual ::grpc::Status GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::epoch::SchedulerStatusResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::epoch::SchedulerStatusResponse>> AsyncGetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::epoch::SchedulerStatusResponse>>(AsyncGetSchedulerStatusRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::epoch::SchedulerStatusResponse>> PrepareAsyncGetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::epoch::SchedulerStatusResponse>>(PrepareAsyncGetSchedulerStatusRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -241,6 +248,8 @@ class SchedulerControl final {
       virtual void SubmitGeneration(::grpc::ClientContext* context, const ::epoch::SubmitGenerationRequest* request, ::epoch::SubmitGenerationResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void GetGenerationResults(::grpc::ClientContext* context, const ::epoch::GetResultsRequest* request, ::epoch::GetResultsResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void GetGenerationResults(::grpc::ClientContext* context, const ::epoch::GetResultsRequest* request, ::epoch::GetResultsResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -250,6 +259,8 @@ class SchedulerControl final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::epoch::SubmitGenerationResponse>* PrepareAsyncSubmitGenerationRaw(::grpc::ClientContext* context, const ::epoch::SubmitGenerationRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::epoch::GetResultsResponse>* AsyncGetGenerationResultsRaw(::grpc::ClientContext* context, const ::epoch::GetResultsRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::epoch::GetResultsResponse>* PrepareAsyncGetGenerationResultsRaw(::grpc::ClientContext* context, const ::epoch::GetResultsRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::epoch::SchedulerStatusResponse>* AsyncGetSchedulerStatusRaw(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::epoch::SchedulerStatusResponse>* PrepareAsyncGetSchedulerStatusRaw(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -268,6 +279,13 @@ class SchedulerControl final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::epoch::GetResultsResponse>> PrepareAsyncGetGenerationResults(::grpc::ClientContext* context, const ::epoch::GetResultsRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::epoch::GetResultsResponse>>(PrepareAsyncGetGenerationResultsRaw(context, request, cq));
     }
+    ::grpc::Status GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::epoch::SchedulerStatusResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>> AsyncGetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>>(AsyncGetSchedulerStatusRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>> PrepareAsyncGetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>>(PrepareAsyncGetSchedulerStatusRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
@@ -275,6 +293,8 @@ class SchedulerControl final {
       void SubmitGeneration(::grpc::ClientContext* context, const ::epoch::SubmitGenerationRequest* request, ::epoch::SubmitGenerationResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
       void GetGenerationResults(::grpc::ClientContext* context, const ::epoch::GetResultsRequest* request, ::epoch::GetResultsResponse* response, std::function<void(::grpc::Status)>) override;
       void GetGenerationResults(::grpc::ClientContext* context, const ::epoch::GetResultsRequest* request, ::epoch::GetResultsResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -290,8 +310,11 @@ class SchedulerControl final {
     ::grpc::ClientAsyncResponseReader< ::epoch::SubmitGenerationResponse>* PrepareAsyncSubmitGenerationRaw(::grpc::ClientContext* context, const ::epoch::SubmitGenerationRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::epoch::GetResultsResponse>* AsyncGetGenerationResultsRaw(::grpc::ClientContext* context, const ::epoch::GetResultsRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::epoch::GetResultsResponse>* PrepareAsyncGetGenerationResultsRaw(::grpc::ClientContext* context, const ::epoch::GetResultsRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>* AsyncGetSchedulerStatusRaw(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>* PrepareAsyncGetSchedulerStatusRaw(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_SubmitGeneration_;
     const ::grpc::internal::RpcMethod rpcmethod_GetGenerationResults_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetSchedulerStatus_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -301,6 +324,7 @@ class SchedulerControl final {
     virtual ~Service();
     virtual ::grpc::Status SubmitGeneration(::grpc::ServerContext* context, const ::epoch::SubmitGenerationRequest* request, ::epoch::SubmitGenerationResponse* response);
     virtual ::grpc::Status GetGenerationResults(::grpc::ServerContext* context, const ::epoch::GetResultsRequest* request, ::epoch::GetResultsResponse* response);
+    virtual ::grpc::Status GetSchedulerStatus(::grpc::ServerContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_SubmitGeneration : public BaseClass {
@@ -342,7 +366,27 @@ class SchedulerControl final {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_SubmitGeneration<WithAsyncMethod_GetGenerationResults<Service > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_GetSchedulerStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetSchedulerStatus() {
+      ::grpc::Service::MarkMethodAsync(2);
+    }
+    ~WithAsyncMethod_GetSchedulerStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetSchedulerStatus(::grpc::ServerContext* /*context*/, const ::epoch::SchedulerStatusRequest* /*request*/, ::epoch::SchedulerStatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetSchedulerStatus(::grpc::ServerContext* context, ::epoch::SchedulerStatusRequest* request, ::grpc::ServerAsyncResponseWriter< ::epoch::SchedulerStatusResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_SubmitGeneration<WithAsyncMethod_GetGenerationResults<WithAsyncMethod_GetSchedulerStatus<Service > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_SubmitGeneration : public BaseClass {
    private:
@@ -397,7 +441,34 @@ class SchedulerControl final {
     virtual ::grpc::ServerUnaryReactor* GetGenerationResults(
       ::grpc::CallbackServerContext* /*context*/, const ::epoch::GetResultsRequest* /*request*/, ::epoch::GetResultsResponse* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_SubmitGeneration<WithCallbackMethod_GetGenerationResults<Service > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_GetSchedulerStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_GetSchedulerStatus() {
+      ::grpc::Service::MarkMethodCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response) { return this->GetSchedulerStatus(context, request, response); }));}
+    void SetMessageAllocatorFor_GetSchedulerStatus(
+        ::grpc::MessageAllocator< ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_GetSchedulerStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetSchedulerStatus(::grpc::ServerContext* /*context*/, const ::epoch::SchedulerStatusRequest* /*request*/, ::epoch::SchedulerStatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetSchedulerStatus(
+      ::grpc::CallbackServerContext* /*context*/, const ::epoch::SchedulerStatusRequest* /*request*/, ::epoch::SchedulerStatusResponse* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_SubmitGeneration<WithCallbackMethod_GetGenerationResults<WithCallbackMethod_GetSchedulerStatus<Service > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_SubmitGeneration : public BaseClass {
@@ -429,6 +500,23 @@ class SchedulerControl final {
     }
     // disable synchronous version of this method
     ::grpc::Status GetGenerationResults(::grpc::ServerContext* /*context*/, const ::epoch::GetResultsRequest* /*request*/, ::epoch::GetResultsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetSchedulerStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetSchedulerStatus() {
+      ::grpc::Service::MarkMethodGeneric(2);
+    }
+    ~WithGenericMethod_GetSchedulerStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetSchedulerStatus(::grpc::ServerContext* /*context*/, const ::epoch::SchedulerStatusRequest* /*request*/, ::epoch::SchedulerStatusResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -474,6 +562,26 @@ class SchedulerControl final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_GetSchedulerStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetSchedulerStatus() {
+      ::grpc::Service::MarkMethodRaw(2);
+    }
+    ~WithRawMethod_GetSchedulerStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetSchedulerStatus(::grpc::ServerContext* /*context*/, const ::epoch::SchedulerStatusRequest* /*request*/, ::epoch::SchedulerStatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetSchedulerStatus(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_SubmitGeneration : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -515,6 +623,28 @@ class SchedulerControl final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* GetGenerationResults(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_GetSchedulerStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_GetSchedulerStatus() {
+      ::grpc::Service::MarkMethodRawCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetSchedulerStatus(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_GetSchedulerStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetSchedulerStatus(::grpc::ServerContext* /*context*/, const ::epoch::SchedulerStatusRequest* /*request*/, ::epoch::SchedulerStatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetSchedulerStatus(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -571,9 +701,36 @@ class SchedulerControl final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedGetGenerationResults(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::epoch::GetResultsRequest,::epoch::GetResultsResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_SubmitGeneration<WithStreamedUnaryMethod_GetGenerationResults<Service > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetSchedulerStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetSchedulerStatus() {
+      ::grpc::Service::MarkMethodStreamed(2,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse>* streamer) {
+                       return this->StreamedGetSchedulerStatus(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetSchedulerStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetSchedulerStatus(::grpc::ServerContext* /*context*/, const ::epoch::SchedulerStatusRequest* /*request*/, ::epoch::SchedulerStatusResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetSchedulerStatus(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::epoch::SchedulerStatusRequest,::epoch::SchedulerStatusResponse>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_SubmitGeneration<WithStreamedUnaryMethod_GetGenerationResults<WithStreamedUnaryMethod_GetSchedulerStatus<Service > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_SubmitGeneration<WithStreamedUnaryMethod_GetGenerationResults<Service > > StreamedService;
+  typedef WithStreamedUnaryMethod_SubmitGeneration<WithStreamedUnaryMethod_GetGenerationResults<WithStreamedUnaryMethod_GetSchedulerStatus<Service > > > StreamedService;
 };
 
 }  // namespace epoch

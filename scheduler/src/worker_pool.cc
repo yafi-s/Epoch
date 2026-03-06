@@ -99,4 +99,15 @@ size_t WorkerPool::IdleCount() const {
     return count;
 }
 
+size_t WorkerPool::BusyCount() const {
+    lock_guard<mutex> lock(mu_);
+    size_t count = 0;
+    for (const auto& [id, session] : workers_) {
+        if (session->State() == WorkerState::kBusy) {
+            ++count;
+        }
+    }
+    return count;
+}
+
 }  // namespace epoch

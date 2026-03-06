@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "epoch/config.h"
 #include "epoch/job.h"
 
 using namespace std;
@@ -24,6 +25,9 @@ public:
 
     /// Try to dequeue a pending job. Returns nullopt if none available.
     optional<Job> TryDequeue();
+
+    /// Set dispatch strategy for selecting the next pending job.
+    void SetDispatchStrategy(DispatchStrategy strategy);
 
     /// Mark a job as completed with a training result.
     /// Returns true if state transitioned to completed.
@@ -46,6 +50,8 @@ public:
     size_t GenerationSize(int32_t generation_id) const;
 
 private:
+    static double EstimateJobCost(const HyperparamConfig& config);
+
     mutable mutex mu_;
     condition_variable cv_;
 
@@ -54,6 +60,8 @@ private:
 
     // Pending job IDs in FIFO order
     vector<string> pending_;
+
+    DispatchStrategy dispatch_strategy_ = DispatchStrategy::kFifo;
 
     // Generation ID → list of job IDs
     unordered_map<int32_t, vector<string>> generations_;

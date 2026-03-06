@@ -38,6 +38,8 @@ class ControllerConfig:
     progress_log_interval_s: float = 10.0
     max_wall_clock_s: float = 0.0
     expected_workers: int = 0
+    wait_for_idle_workers: int = 0
+    readiness_timeout_s: float = 180.0
 
 
 @dataclass
@@ -58,6 +60,7 @@ class GenerationKPI:
     queue_overhead_ms: float = 0.0
     queue_overhead_pct: float = 0.0
     gen_jobs_per_sec: float = 0.0
+    plateau_reheat_applied: bool = False
     dispatch_latency_p50_ms: float = 0.0
     dispatch_latency_p90_ms: float = 0.0
     dispatch_latency_max_ms: float = 0.0
@@ -67,6 +70,7 @@ class GenerationKPI:
     queue_wait_p50_ms: float = 0.0
     queue_wait_p90_ms: float = 0.0
     queue_wait_max_ms: float = 0.0
+    queue_wait_min_ms: float = 0.0
     dispatch_samples: int = 0
     idle_gap_samples: int = 0
     queue_wait_samples: int = 0
@@ -88,6 +92,11 @@ class RunStats:
     stopped_early: bool = False
     stop_reason: str = "completed"
     generation_kpis: list[GenerationKPI] = field(default_factory=list)
+    first_generation_submit_offset_s: float = 0.0
+    first_dispatch_offset_s: float = 0.0
+    plateau_events_count: int = 0
+    reheat_generations_applied: int = 0
+    stale_generations_final: int = 0
 
 
 class GAController:
@@ -114,6 +123,7 @@ class GAController:
         self._stub: epoch_pb2_grpc.SchedulerControlStub | None = None
         self._run_stats = RunStats()
         self._run_start_monotonic = 0.0
+        self._first_generation_submit_monotonic: float | None = None
 
     @property
     def run_stats(self) -> RunStats:
@@ -130,6 +140,11 @@ class GAController:
             generations_completed=self._run_stats.generations_completed,
             stopped_early=self._run_stats.stopped_early,
             stop_reason=self._run_stats.stop_reason,
+            first_generation_submit_offset_s=self._run_stats.first_generation_submit_offset_s,
+            first_dispatch_offset_s=self._run_stats.first_dispatch_offset_s,
+            plateau_events_count=self._run_stats.plateau_events_count,
+            reheat_generations_applied=self._run_stats.reheat_generations_applied,
+            stale_generations_final=self._run_stats.stale_generations_final,
             generation_kpis=[
                 GenerationKPI(
                     generation=kpi.generation,
@@ -146,6 +161,7 @@ class GAController:
                     queue_overhead_ms=kpi.queue_overhead_ms,
                     queue_overhead_pct=kpi.queue_overhead_pct,
                     gen_jobs_per_sec=kpi.gen_jobs_per_sec,
+                    plateau_reheat_applied=kpi.plateau_reheat_applied,
                     dispatch_latency_p50_ms=kpi.dispatch_latency_p50_ms,
                     dispatch_latency_p90_ms=kpi.dispatch_latency_p90_ms,
                     dispatch_latency_max_ms=kpi.dispatch_latency_max_ms,
@@ -155,6 +171,7 @@ class GAController:
                     queue_wait_p50_ms=kpi.queue_wait_p50_ms,
                     queue_wait_p90_ms=kpi.queue_wait_p90_ms,
                     queue_wait_max_ms=kpi.queue_wait_max_ms,
+                    queue_wait_min_ms=kpi.queue_wait_min_ms,
                     dispatch_samples=kpi.dispatch_samples,
                     idle_gap_samples=kpi.idle_gap_samples,
                     queue_wait_samples=kpi.queue_wait_samples,
@@ -177,14 +194,21 @@ class GAController:
             generations_planned=self.config.ga_config.num_generations,
         )
         self._run_start_monotonic = time.monotonic()
+        self._first_generation_submit_monotonic = None
 
         try:
+            self._wait_for_scheduler_readiness()
             population = self._engine.initialize()
             logger.info(
                 "GA started: pop_size=%d generations=%d",
                 self.config.ga_config.population_size,
                 self.config.ga_config.num_generations,
             )
+            best_peak_so_far = 0.0
+            stale_generations = 0
+            plateau_events_count = 0
+            reheat_generations_remaining = 0
+            reheat_generations_applied = 0
 
             for gen in range(self.config.ga_config.num_generations):
                 if self._should_stop_before_generation(gen):
@@ -194,6 +218,12 @@ class GAController:
                 logger.info("Generation %d started", gen)
 
                 # Submit generation to scheduler
+                if gen == 0 and self._first_generation_submit_monotonic is None:
+                    self._first_generation_submit_monotonic = time.monotonic()
+                    self._run_stats.first_generation_submit_offset_s = max(
+                        self._first_generation_submit_monotonic - self._run_start_monotonic,
+                        0.0,
+                    )
                 submitted_jobs = self._submit_generation(gen, population)
                 self._run_stats.jobs_submitted += submitted_jobs
 
@@ -205,15 +235,52 @@ class GAController:
                 )
                 self._run_stats.generation_kpis.append(gen_kpi)
                 self._run_stats.generations_completed += 1
+                if gen == 0 and self._run_stats.first_dispatch_offset_s <= 0.0:
+                    self._capture_first_dispatch_offset(gen_kpi)
 
                 # Assign fitness
                 self._assign_fitness(population, results)
 
+                gen_best = float(population.best_fitness)
+                if gen == 0:
+                    best_peak_so_far = gen_best
+                    stale_generations = 0
+                else:
+                    has_new_best = gen_best > best_peak_so_far
+                    if gen_best > (best_peak_so_far + self.config.ga_config.plateau_min_delta):
+                        stale_generations = 0
+                    elif has_new_best and self.config.ga_config.plateau_reset_on_any_new_best:
+                        stale_generations = 0
+                    else:
+                        stale_generations += 1
+                    best_peak_so_far = max(best_peak_so_far, gen_best)
+
+                if (
+                    stale_generations >= self.config.ga_config.plateau_patience_gens
+                    and self.config.ga_config.plateau_reheat_gens > 0
+                    and gen < self.config.ga_config.num_generations - 1
+                ):
+                    plateau_events_count += 1
+                    reheat_generations_remaining = max(
+                        reheat_generations_remaining,
+                        int(self.config.ga_config.plateau_reheat_gens),
+                    )
+                    stale_generations = 0
+                    logger.info(
+                        "Plateau detected at generation %d; reheating for %d generation(s) "
+                        "with immigrant_rate=%.3f mutation_rate_floor=%.3f",
+                        gen,
+                        reheat_generations_remaining,
+                        self.config.ga_config.plateau_immigrant_rate,
+                        self.config.ga_config.plateau_mutation_rate_floor,
+                    )
+
                 gen_elapsed_ms = int((time.monotonic() - gen_start) * 1000)
                 logger.info(
-                    "Gen %d complete: best=%.4f avg=%.4f worst=%.4f time=%dms",
+                    "Gen %d complete: best=%.4f best_so_far=%.4f avg=%.4f worst=%.4f time=%dms",
                     gen,
                     population.best_fitness,
+                    best_peak_so_far,
                     population.avg_fitness,
                     population.worst_fitness,
                     gen_elapsed_ms,
@@ -224,6 +291,7 @@ class GAController:
                     self.metrics_store.record_generation(
                         generation=gen,
                         best_fitness=population.best_fitness,
+                        best_so_far=best_peak_so_far,
                         avg_fitness=population.avg_fitness,
                         worst_fitness=population.worst_fitness,
                         wall_clock_ms=gen_elapsed_ms,
@@ -245,7 +313,29 @@ class GAController:
 
                 # Evolve (except after the last generation)
                 if gen < self.config.ga_config.num_generations - 1:
-                    population = self._engine.evolve(population)
+                    immigrant_rate_override = None
+                    mutation_rate_floor_override = None
+                    reexpand_constraints = False
+                    if reheat_generations_remaining > 0:
+                        immigrant_rate_override = self.config.ga_config.plateau_immigrant_rate
+                        mutation_rate_floor_override = (
+                            self.config.ga_config.plateau_mutation_rate_floor
+                        )
+                        reexpand_constraints = True
+                        gen_kpi.plateau_reheat_applied = True
+                        reheat_generations_remaining -= 1
+                        reheat_generations_applied += 1
+
+                    population = self._engine.evolve(
+                        population,
+                        immigrant_rate_override=immigrant_rate_override,
+                        mutation_rate_floor_override=mutation_rate_floor_override,
+                        reexpand_constraints=reexpand_constraints,
+                    )
+
+            self._run_stats.plateau_events_count = plateau_events_count
+            self._run_stats.reheat_generations_applied = reheat_generations_applied
+            self._run_stats.stale_generations_final = stale_generations
 
             if not self._run_stats.stopped_early:
                 self._run_stats.stop_reason = "completed"
@@ -262,6 +352,77 @@ class GAController:
         finally:
             if self._channel:
                 self._channel.close()
+
+    def _wait_for_scheduler_readiness(self) -> None:
+        target_idle = int(self.config.wait_for_idle_workers)
+        if target_idle <= 0:
+            return
+
+        deadline = None
+        if self.config.readiness_timeout_s > 0:
+            deadline = time.monotonic() + self.config.readiness_timeout_s
+        next_progress_log = time.monotonic()
+
+        logger.info(
+            "Waiting for scheduler readiness: idle_workers >= %d",
+            target_idle,
+        )
+
+        while True:
+            try:
+                status = self._stub.GetSchedulerStatus(
+                    epoch_pb2.SchedulerStatusRequest(),
+                    timeout=self.config.rpc_timeout_s,
+                )
+            except grpc.RpcError as e:
+                logger.error(
+                    "GetSchedulerStatus RPC failed: code=%s details=%s",
+                    e.code(),
+                    e.details(),
+                )
+                raise
+
+            idle_workers = int(status.idle_workers)
+            if idle_workers >= target_idle:
+                logger.info(
+                    "Scheduler ready: connected=%d idle=%d busy=%d pending=%d",
+                    int(status.connected_workers),
+                    idle_workers,
+                    int(status.busy_workers),
+                    int(status.pending_jobs),
+                )
+                return
+
+            now = time.monotonic()
+            if deadline is not None and now > deadline:
+                raise TimeoutError(
+                    "Timed out waiting for scheduler readiness after "
+                    f"{self.config.readiness_timeout_s:.1f}s "
+                    f"(idle={idle_workers}, target={target_idle})"
+                )
+
+            if now >= next_progress_log:
+                logger.warning(
+                    "Waiting for workers: connected=%d idle=%d busy=%d pending=%d target_idle=%d",
+                    int(status.connected_workers),
+                    idle_workers,
+                    int(status.busy_workers),
+                    int(status.pending_jobs),
+                    target_idle,
+                )
+                next_progress_log = now + self.config.progress_log_interval_s
+
+            time.sleep(max(self.config.poll_interval, 0.1))
+
+    def _capture_first_dispatch_offset(self, gen_kpi: GenerationKPI) -> None:
+        if self._first_generation_submit_monotonic is None:
+            return
+        if gen_kpi.queue_wait_min_ms <= 0:
+            return
+        first_dispatch_offset_s = (
+            self._run_stats.first_generation_submit_offset_s + (gen_kpi.queue_wait_min_ms / 1000.0)
+        )
+        self._run_stats.first_dispatch_offset_s = max(first_dispatch_offset_s, 0.0)
 
     def _submit_generation(self, generation_id: int, population: Population) -> int:
         """Submit all individuals in the population as jobs."""
@@ -385,6 +546,7 @@ class GAController:
         queue_wait_p50_ms = 0.0
         queue_wait_p90_ms = 0.0
         queue_wait_max_ms = 0.0
+        queue_wait_min_ms = 0.0
         dispatch_samples = 0
         idle_gap_samples = 0
         queue_wait_samples = 0
@@ -398,6 +560,8 @@ class GAController:
             queue_wait_p50_ms = float(runtime_metrics.queue_wait_p50_ms)
             queue_wait_p90_ms = float(runtime_metrics.queue_wait_p90_ms)
             queue_wait_max_ms = float(runtime_metrics.queue_wait_max_ms)
+            if hasattr(runtime_metrics, "queue_wait_min_ms"):
+                queue_wait_min_ms = float(runtime_metrics.queue_wait_min_ms)
             dispatch_samples = int(runtime_metrics.dispatch_samples)
             idle_gap_samples = int(runtime_metrics.idle_gap_samples)
             queue_wait_samples = int(runtime_metrics.queue_wait_samples)
@@ -426,6 +590,7 @@ class GAController:
             queue_wait_p50_ms=queue_wait_p50_ms,
             queue_wait_p90_ms=queue_wait_p90_ms,
             queue_wait_max_ms=queue_wait_max_ms,
+            queue_wait_min_ms=queue_wait_min_ms,
             dispatch_samples=dispatch_samples,
             idle_gap_samples=idle_gap_samples,
             queue_wait_samples=queue_wait_samples,

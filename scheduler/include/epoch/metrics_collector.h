@@ -29,6 +29,7 @@ public:
         MetricSummary dispatch_latency;
         MetricSummary worker_idle_gap;
         MetricSummary queue_wait;
+        double queue_wait_min_ms = 0.0;
     };
 
     void RecordJobDispatched();

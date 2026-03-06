@@ -21,10 +21,23 @@ class _FakeChannel:
 
 
 class _FakeStub:
-    def __init__(self, responses: dict[int, epoch_pb2.GetResultsResponse]) -> None:
+    def __init__(
+        self,
+        responses: dict[int, epoch_pb2.GetResultsResponse],
+        status_responses: list[epoch_pb2.SchedulerStatusResponse] | None = None,
+    ) -> None:
         self._responses = responses
+        self._status_responses = status_responses or [
+            epoch_pb2.SchedulerStatusResponse(
+                connected_workers=0,
+                idle_workers=0,
+                busy_workers=0,
+                pending_jobs=0,
+            )
+        ]
         self.submit_requests: list[epoch_pb2.SubmitGenerationRequest] = []
         self.result_requests: list[epoch_pb2.GetResultsRequest] = []
+        self.status_requests: list[epoch_pb2.SchedulerStatusRequest] = []
 
     def SubmitGeneration(
         self, request: epoch_pb2.SubmitGenerationRequest, timeout: float | None = None
@@ -38,6 +51,14 @@ class _FakeStub:
         self.result_requests.append(request)
         return self._responses[request.generation_id]
 
+    def GetSchedulerStatus(
+        self, request: epoch_pb2.SchedulerStatusRequest, timeout: float | None = None
+    ) -> epoch_pb2.SchedulerStatusResponse:
+        self.status_requests.append(request)
+        if len(self.status_requests) >= len(self._status_responses):
+            return self._status_responses[-1]
+        return self._status_responses[len(self.status_requests) - 1]
+
 
 def _result(
     job_id: str,
@@ -45,10 +66,11 @@ def _result(
     train_ms: int,
     status: int = epoch_pb2.JOB_STATUS_COMPLETED,
     acc: float = 0.5,
+    generation_id: int = 0,
 ) -> epoch_pb2.TrainingResult:
     return epoch_pb2.TrainingResult(
         job_id=job_id,
-        generation_id=0,
+        generation_id=generation_id,
         worker_id=worker_id,
         validation_accuracy=acc,
         training_loss=0.1,
@@ -69,6 +91,7 @@ def _runtime_metrics(
     queue_p50: float = 0.0,
     queue_p90: float = 0.0,
     queue_max: float = 0.0,
+    queue_min: float = 0.0,
     dispatch_samples: int = 0,
     idle_samples: int = 0,
     queue_samples: int = 0,
@@ -83,6 +106,7 @@ def _runtime_metrics(
         queue_wait_p50_ms=queue_p50,
         queue_wait_p90_ms=queue_p90,
         queue_wait_max_ms=queue_max,
+        queue_wait_min_ms=queue_min,
         dispatch_samples=dispatch_samples,
         idle_gap_samples=idle_samples,
         queue_wait_samples=queue_samples,
@@ -97,8 +121,11 @@ def _build_controller(
     generations: int,
     max_wall_clock_s: float = 0.0,
     expected_workers: int = 0,
+    wait_for_idle_workers: int = 0,
+    readiness_timeout_s: float = 5.0,
+    status_responses: list[epoch_pb2.SchedulerStatusResponse] | None = None,
 ) -> tuple[GAController, _FakeStub]:
-    stub = _FakeStub(responses)
+    stub = _FakeStub(responses, status_responses=status_responses)
 
     monkeypatch.setattr(controller_mod.grpc, "insecure_channel", lambda _addr: _FakeChannel())
     monkeypatch.setattr(controller_mod.epoch_pb2_grpc, "SchedulerControlStub", lambda _ch: stub)
@@ -118,6 +145,8 @@ def _build_controller(
         progress_log_interval_s=1.0,
         max_wall_clock_s=max_wall_clock_s,
         expected_workers=expected_workers,
+        wait_for_idle_workers=wait_for_idle_workers,
+        readiness_timeout_s=readiness_timeout_s,
     )
     controller = GAController(cfg, search_space=SearchSpace.stress_test_cnn_space())
     return controller, stub
@@ -146,6 +175,7 @@ def test_generation_kpi_computation(monkeypatch: pytest.MonkeyPatch) -> None:
                 queue_p50=8.0,
                 queue_p90=11.0,
                 queue_max=13.0,
+                queue_min=2.0,
                 dispatch_samples=5,
                 idle_samples=3,
                 queue_samples=5,
@@ -188,6 +218,7 @@ def test_generation_kpi_computation(monkeypatch: pytest.MonkeyPatch) -> None:
     assert kpi.queue_wait_p50_ms == pytest.approx(8.0)
     assert kpi.queue_wait_p90_ms == pytest.approx(11.0)
     assert kpi.queue_wait_max_ms == pytest.approx(13.0)
+    assert kpi.queue_wait_min_ms == pytest.approx(2.0)
     assert kpi.dispatch_samples == 5
     assert kpi.idle_gap_samples == 3
     assert kpi.queue_wait_samples == 5
@@ -344,3 +375,188 @@ def test_smoke_run_pop6_gen1_populates_kpis(monkeypatch: pytest.MonkeyPatch) -> 
     assert kpi.active_workers == 3
     assert kpi.train_total_ms == 840
     assert kpi.wall_clock_ms == 420
+
+
+def test_plateau_reheat_persists_for_configured_generations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    responses = {}
+    for gen in range(6):
+        responses[gen] = epoch_pb2.GetResultsResponse(
+            complete=True,
+            wall_clock_ms=300,
+            results=[
+                _result(f"job{gen}_0", "w0", 100, acc=0.8010, generation_id=gen),
+                _result(f"job{gen}_1", "w1", 100, acc=0.8000, generation_id=gen),
+                _result(f"job{gen}_2", "w2", 100, acc=0.7900, generation_id=gen),
+                _result(f"job{gen}_3", "w3", 100, acc=0.7800, generation_id=gen),
+            ],
+        )
+
+    controller, _stub = _build_controller(
+        monkeypatch,
+        responses,
+        pop_size=4,
+        generations=6,
+    )
+    controller.config.ga_config.plateau_min_delta = 0.01
+    controller.config.ga_config.plateau_patience_gens = 3
+    controller.config.ga_config.plateau_immigrant_rate = 0.25
+    controller.config.ga_config.plateau_mutation_rate_floor = 0.4
+    controller.config.ga_config.plateau_reheat_gens = 2
+
+    overrides: list[tuple[float | None, float | None, bool]] = []
+    original_evolve = controller._engine.evolve
+
+    def _wrapped_evolve(
+        population,
+        immigrant_rate_override=None,
+        mutation_rate_floor_override=None,
+        reexpand_constraints=False,
+    ):
+        overrides.append(
+            (
+                immigrant_rate_override,
+                mutation_rate_floor_override,
+                reexpand_constraints,
+            )
+        )
+        return original_evolve(
+            population,
+            immigrant_rate_override=immigrant_rate_override,
+            mutation_rate_floor_override=mutation_rate_floor_override,
+            reexpand_constraints=reexpand_constraints,
+        )
+
+    controller._engine.evolve = _wrapped_evolve
+    controller.run()
+
+    assert len(overrides) == 5
+    assert overrides[0] == (None, None, False)
+    assert overrides[1] == (None, None, False)
+    assert overrides[2] == (None, None, False)
+    assert overrides[3] == (pytest.approx(0.25), pytest.approx(0.4), True)
+    assert overrides[4] == (pytest.approx(0.25), pytest.approx(0.4), True)
+    stats = controller.run_stats
+    assert stats.plateau_events_count == 1
+    assert stats.reheat_generations_applied == 2
+    assert stats.stale_generations_final == 2
+    assert [kpi.plateau_reheat_applied for kpi in stats.generation_kpis].count(True) == 2
+
+
+def test_plateau_resets_on_any_new_best_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    responses = {}
+    best_per_generation = [0.8000, 0.8005, 0.8008, 0.8010]
+    for gen, best in enumerate(best_per_generation):
+        responses[gen] = epoch_pb2.GetResultsResponse(
+            complete=True,
+            wall_clock_ms=300,
+            results=[
+                _result(f"job{gen}_0", "w0", 100, acc=best, generation_id=gen),
+                _result(f"job{gen}_1", "w1", 100, acc=max(best - 0.01, 0.0), generation_id=gen),
+                _result(f"job{gen}_2", "w2", 100, acc=max(best - 0.02, 0.0), generation_id=gen),
+                _result(f"job{gen}_3", "w3", 100, acc=max(best - 0.03, 0.0), generation_id=gen),
+            ],
+        )
+
+    controller, _stub = _build_controller(
+        monkeypatch,
+        responses,
+        pop_size=4,
+        generations=4,
+    )
+    controller.config.ga_config.plateau_min_delta = 0.01
+    controller.config.ga_config.plateau_patience_gens = 1
+    controller.config.ga_config.plateau_reset_on_any_new_best = True
+
+    overrides: list[tuple[float | None, float | None, bool]] = []
+    original_evolve = controller._engine.evolve
+
+    def _wrapped_evolve(
+        population,
+        immigrant_rate_override=None,
+        mutation_rate_floor_override=None,
+        reexpand_constraints=False,
+    ):
+        overrides.append(
+            (
+                immigrant_rate_override,
+                mutation_rate_floor_override,
+                reexpand_constraints,
+            )
+        )
+        return original_evolve(
+            population,
+            immigrant_rate_override=immigrant_rate_override,
+            mutation_rate_floor_override=mutation_rate_floor_override,
+            reexpand_constraints=reexpand_constraints,
+        )
+
+    controller._engine.evolve = _wrapped_evolve
+    controller.run()
+
+    assert len(overrides) == 3
+    assert overrides == [(None, None, False), (None, None, False), (None, None, False)]
+    stats = controller.run_stats
+    assert stats.plateau_events_count == 0
+    assert stats.reheat_generations_applied == 0
+    assert stats.stale_generations_final == 0
+
+
+def test_wait_for_idle_workers_reads_scheduler_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    responses = {
+        0: epoch_pb2.GetResultsResponse(
+            complete=True,
+            wall_clock_ms=200,
+            results=[_result("job0", "w0", 100, acc=0.8)],
+            runtime_metrics=_runtime_metrics(queue_min=5.0, queue_samples=1),
+        )
+    }
+    status_responses = [
+        epoch_pb2.SchedulerStatusResponse(connected_workers=1, idle_workers=0, busy_workers=1, pending_jobs=0),
+        epoch_pb2.SchedulerStatusResponse(connected_workers=2, idle_workers=1, busy_workers=1, pending_jobs=0),
+        epoch_pb2.SchedulerStatusResponse(connected_workers=2, idle_workers=2, busy_workers=0, pending_jobs=0),
+    ]
+    controller, stub = _build_controller(
+        monkeypatch,
+        responses,
+        pop_size=1,
+        generations=1,
+        wait_for_idle_workers=2,
+        status_responses=status_responses,
+    )
+
+    controller.run()
+    assert len(stub.status_requests) >= 3
+    assert controller.run_stats.generations_completed == 1
+
+
+def test_first_dispatch_offset_uses_queue_wait_min(monkeypatch: pytest.MonkeyPatch) -> None:
+    responses = {
+        0: epoch_pb2.GetResultsResponse(
+            complete=True,
+            wall_clock_ms=300,
+            results=[
+                _result("job0", "w0", 100, acc=0.8),
+                _result("job1", "w1", 100, acc=0.7),
+            ],
+            runtime_metrics=_runtime_metrics(queue_min=123.0, queue_samples=2),
+        )
+    }
+    controller, _stub = _build_controller(
+        monkeypatch,
+        responses,
+        pop_size=2,
+        generations=1,
+    )
+
+    controller.run()
+    stats = controller.run_stats
+    assert stats.first_generation_submit_offset_s >= 0.0
+    assert stats.first_dispatch_offset_s >= stats.first_generation_submit_offset_s
+    assert stats.first_dispatch_offset_s == pytest.approx(
+        stats.first_generation_submit_offset_s + 0.123,
+        abs=0.05,
+    )

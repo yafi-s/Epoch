@@ -60,6 +60,13 @@ if not (GENERATED_DIR / "python" / "epoch_pb2.py").exists():
 DEFAULT_GPU = os.environ.get("EPOCH_MODAL_GPU", "T4")
 DEFAULT_NUM_WORKERS = int(os.environ.get("EPOCH_MODAL_NUM_WORKERS", "8"))
 DEFAULT_AUTH_KEY = os.environ.get("EPOCH_WORKER_AUTH_KEY", "superkey")
+DEFAULT_DETERMINISTIC_EVAL = os.environ.get("EPOCH_DETERMINISTIC_EVAL", "1").lower() not in {
+    "0",
+    "false",
+    "no",
+    "off",
+}
+DEFAULT_DETERMINISTIC_SEED_OFFSET = int(os.environ.get("EPOCH_DETERMINISTIC_SEED_OFFSET", "0"))
 APP_NAME = os.environ.get("EPOCH_MODAL_APP_NAME", "epoch-workers")
 DEFAULT_MODAL_SECRET_NAME = "superkey"
 
@@ -96,6 +103,9 @@ def run_worker(
     train_subset_size: int,
     val_subset_size: int,
     run_eagerly: bool,
+    gc_every_n_jobs: int,
+    deterministic_eval: bool,
+    deterministic_seed_offset: int,
     log_level: str,
 ) -> None:
     """Run one worker process inside a Modal container."""
@@ -136,6 +146,9 @@ def run_worker(
         train_subset_size=train_subset_size,
         val_subset_size=val_subset_size,
         run_eagerly=run_eagerly,
+        gc_every_n_jobs=gc_every_n_jobs,
+        deterministic_eval=deterministic_eval,
+        deterministic_seed_offset=deterministic_seed_offset,
     )
     client = WorkerClient(
         worker_id=worker_id,
@@ -170,6 +183,9 @@ def launch(
     train_subset_size: int = 512,
     val_subset_size: int = 256,
     run_eagerly: bool = False,
+    gc_every_n_jobs: int = 1,
+    deterministic_eval: bool = DEFAULT_DETERMINISTIC_EVAL,
+    deterministic_seed_offset: int = DEFAULT_DETERMINISTIC_SEED_OFFSET,
     log_level: str = "WARNING",
     wait_for_workers: bool = False,
 ) -> None:
@@ -213,6 +229,9 @@ def launch(
             train_subset_size=train_subset_size,
             val_subset_size=val_subset_size,
             run_eagerly=run_eagerly,
+            gc_every_n_jobs=gc_every_n_jobs,
+            deterministic_eval=deterministic_eval,
+            deterministic_seed_offset=deterministic_seed_offset,
             log_level=log_level,
         )
         calls.append((worker_id, call))

@@ -147,6 +147,7 @@ message GenerationRuntimeMetrics {
     double queue_wait_p50_ms = 7;
     double queue_wait_p90_ms = 8;
     double queue_wait_max_ms = 9;
+    double queue_wait_min_ms = 13;
 
     uint32 dispatch_samples = 10;
     uint32 idle_gap_samples = 11;
@@ -160,6 +161,15 @@ message GetResultsResponse {
     GenerationRuntimeMetrics runtime_metrics = 4;
 }
 
+message SchedulerStatusRequest {}
+
+message SchedulerStatusResponse {
+    uint32 connected_workers = 1;
+    uint32 idle_workers = 2;
+    uint32 busy_workers = 3;
+    uint32 pending_jobs = 4;
+}
+
 // ─── Services ────────────────────────────────────────────────────────────────
 
 // Bidirectional streaming between workers and the scheduler.
@@ -171,4 +181,5 @@ service WorkerService {
 service SchedulerControl {
     rpc SubmitGeneration(SubmitGenerationRequest) returns (SubmitGenerationResponse);
     rpc GetGenerationResults(GetResultsRequest) returns (GetResultsResponse);
+    rpc GetSchedulerStatus(SchedulerStatusRequest) returns (SchedulerStatusResponse);
 }

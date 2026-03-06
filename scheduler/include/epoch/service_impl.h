@@ -52,6 +52,11 @@ public:
         const GetResultsRequest* request,
         GetResultsResponse* response) override;
 
+    grpc::Status GetSchedulerStatus(
+        grpc::ServerContext* context,
+        const SchedulerStatusRequest* request,
+        SchedulerStatusResponse* response) override;
+
 private:
     void DispatchLoop();
     void HeartbeatLoop();

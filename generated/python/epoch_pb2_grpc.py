@@ -95,6 +95,11 @@ class SchedulerControlStub(object):
                 request_serializer=epoch__pb2.GetResultsRequest.SerializeToString,
                 response_deserializer=epoch__pb2.GetResultsResponse.FromString,
                 )
+        self.GetSchedulerStatus = channel.unary_unary(
+                '/epoch.SchedulerControl/GetSchedulerStatus',
+                request_serializer=epoch__pb2.SchedulerStatusRequest.SerializeToString,
+                response_deserializer=epoch__pb2.SchedulerStatusResponse.FromString,
+                )
 
 
 class SchedulerControlServicer(object):
@@ -113,6 +118,12 @@ class SchedulerControlServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetSchedulerStatus(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_SchedulerControlServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -125,6 +136,11 @@ def add_SchedulerControlServicer_to_server(servicer, server):
                     servicer.GetGenerationResults,
                     request_deserializer=epoch__pb2.GetResultsRequest.FromString,
                     response_serializer=epoch__pb2.GetResultsResponse.SerializeToString,
+            ),
+            'GetSchedulerStatus': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSchedulerStatus,
+                    request_deserializer=epoch__pb2.SchedulerStatusRequest.FromString,
+                    response_serializer=epoch__pb2.SchedulerStatusResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -168,5 +184,22 @@ class SchedulerControl(object):
         return grpc.experimental.unary_unary(request, target, '/epoch.SchedulerControl/GetGenerationResults',
             epoch__pb2.GetResultsRequest.SerializeToString,
             epoch__pb2.GetResultsResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetSchedulerStatus(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/epoch.SchedulerControl/GetSchedulerStatus',
+            epoch__pb2.SchedulerStatusRequest.SerializeToString,
+            epoch__pb2.SchedulerStatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

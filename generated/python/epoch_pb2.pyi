@@ -160,7 +160,7 @@ class GetResultsRequest(_message.Message):
     def __init__(self, generation_id: _Optional[int] = ...) -> None: ...
 
 class GenerationRuntimeMetrics(_message.Message):
-    __slots__ = ("dispatch_latency_p50_ms", "dispatch_latency_p90_ms", "dispatch_latency_max_ms", "worker_idle_gap_p50_ms", "worker_idle_gap_p90_ms", "worker_idle_gap_max_ms", "queue_wait_p50_ms", "queue_wait_p90_ms", "queue_wait_max_ms", "dispatch_samples", "idle_gap_samples", "queue_wait_samples")
+    __slots__ = ("dispatch_latency_p50_ms", "dispatch_latency_p90_ms", "dispatch_latency_max_ms", "worker_idle_gap_p50_ms", "worker_idle_gap_p90_ms", "worker_idle_gap_max_ms", "queue_wait_p50_ms", "queue_wait_p90_ms", "queue_wait_max_ms", "queue_wait_min_ms", "dispatch_samples", "idle_gap_samples", "queue_wait_samples")
     DISPATCH_LATENCY_P50_MS_FIELD_NUMBER: _ClassVar[int]
     DISPATCH_LATENCY_P90_MS_FIELD_NUMBER: _ClassVar[int]
     DISPATCH_LATENCY_MAX_MS_FIELD_NUMBER: _ClassVar[int]
@@ -170,6 +170,7 @@ class GenerationRuntimeMetrics(_message.Message):
     QUEUE_WAIT_P50_MS_FIELD_NUMBER: _ClassVar[int]
     QUEUE_WAIT_P90_MS_FIELD_NUMBER: _ClassVar[int]
     QUEUE_WAIT_MAX_MS_FIELD_NUMBER: _ClassVar[int]
+    QUEUE_WAIT_MIN_MS_FIELD_NUMBER: _ClassVar[int]
     DISPATCH_SAMPLES_FIELD_NUMBER: _ClassVar[int]
     IDLE_GAP_SAMPLES_FIELD_NUMBER: _ClassVar[int]
     QUEUE_WAIT_SAMPLES_FIELD_NUMBER: _ClassVar[int]
@@ -182,10 +183,11 @@ class GenerationRuntimeMetrics(_message.Message):
     queue_wait_p50_ms: float
     queue_wait_p90_ms: float
     queue_wait_max_ms: float
+    queue_wait_min_ms: float
     dispatch_samples: int
     idle_gap_samples: int
     queue_wait_samples: int
-    def __init__(self, dispatch_latency_p50_ms: _Optional[float] = ..., dispatch_latency_p90_ms: _Optional[float] = ..., dispatch_latency_max_ms: _Optional[float] = ..., worker_idle_gap_p50_ms: _Optional[float] = ..., worker_idle_gap_p90_ms: _Optional[float] = ..., worker_idle_gap_max_ms: _Optional[float] = ..., queue_wait_p50_ms: _Optional[float] = ..., queue_wait_p90_ms: _Optional[float] = ..., queue_wait_max_ms: _Optional[float] = ..., dispatch_samples: _Optional[int] = ..., idle_gap_samples: _Optional[int] = ..., queue_wait_samples: _Optional[int] = ...) -> None: ...
+    def __init__(self, dispatch_latency_p50_ms: _Optional[float] = ..., dispatch_latency_p90_ms: _Optional[float] = ..., dispatch_latency_max_ms: _Optional[float] = ..., worker_idle_gap_p50_ms: _Optional[float] = ..., worker_idle_gap_p90_ms: _Optional[float] = ..., worker_idle_gap_max_ms: _Optional[float] = ..., queue_wait_p50_ms: _Optional[float] = ..., queue_wait_p90_ms: _Optional[float] = ..., queue_wait_max_ms: _Optional[float] = ..., queue_wait_min_ms: _Optional[float] = ..., dispatch_samples: _Optional[int] = ..., idle_gap_samples: _Optional[int] = ..., queue_wait_samples: _Optional[int] = ...) -> None: ...
 
 class GetResultsResponse(_message.Message):
     __slots__ = ("complete", "results", "wall_clock_ms", "runtime_metrics")
@@ -198,3 +200,19 @@ class GetResultsResponse(_message.Message):
     wall_clock_ms: int
     runtime_metrics: GenerationRuntimeMetrics
     def __init__(self, complete: bool = ..., results: _Optional[_Iterable[_Union[TrainingResult, _Mapping]]] = ..., wall_clock_ms: _Optional[int] = ..., runtime_metrics: _Optional[_Union[GenerationRuntimeMetrics, _Mapping]] = ...) -> None: ...
+
+class SchedulerStatusRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class SchedulerStatusResponse(_message.Message):
+    __slots__ = ("connected_workers", "idle_workers", "busy_workers", "pending_jobs")
+    CONNECTED_WORKERS_FIELD_NUMBER: _ClassVar[int]
+    IDLE_WORKERS_FIELD_NUMBER: _ClassVar[int]
+    BUSY_WORKERS_FIELD_NUMBER: _ClassVar[int]
+    PENDING_JOBS_FIELD_NUMBER: _ClassVar[int]
+    connected_workers: int
+    idle_workers: int
+    busy_workers: int
+    pending_jobs: int
+    def __init__(self, connected_workers: _Optional[int] = ..., idle_workers: _Optional[int] = ..., busy_workers: _Optional[int] = ..., pending_jobs: _Optional[int] = ...) -> None: ...

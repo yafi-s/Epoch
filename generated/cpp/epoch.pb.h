@@ -26,6 +26,7 @@
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/arena.h"
 #include "google/protobuf/arenastring.h"
+#include "google/protobuf/generated_message_bases.h"
 #include "google/protobuf/generated_message_tctable_decl.h"
 #include "google/protobuf/generated_message_util.h"
 #include "google/protobuf/metadata_lite.h"
@@ -78,6 +79,12 @@ extern JobAssignmentDefaultTypeInternal _JobAssignment_default_instance_;
 class SchedulerMessage;
 struct SchedulerMessageDefaultTypeInternal;
 extern SchedulerMessageDefaultTypeInternal _SchedulerMessage_default_instance_;
+class SchedulerStatusRequest;
+struct SchedulerStatusRequestDefaultTypeInternal;
+extern SchedulerStatusRequestDefaultTypeInternal _SchedulerStatusRequest_default_instance_;
+class SchedulerStatusResponse;
+struct SchedulerStatusResponseDefaultTypeInternal;
+extern SchedulerStatusResponseDefaultTypeInternal _SchedulerStatusResponse_default_instance_;
 class SubmitGenerationRequest;
 struct SubmitGenerationRequestDefaultTypeInternal;
 extern SubmitGenerationRequestDefaultTypeInternal _SubmitGenerationRequest_default_instance_;
@@ -901,6 +908,353 @@ class SubmitGenerationResponse final :
   friend struct ::TableStruct_epoch_2eproto;
 };// -------------------------------------------------------------------
 
+class SchedulerStatusResponse final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:epoch.SchedulerStatusResponse) */ {
+ public:
+  inline SchedulerStatusResponse() : SchedulerStatusResponse(nullptr) {}
+  ~SchedulerStatusResponse() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR SchedulerStatusResponse(::google::protobuf::internal::ConstantInitialized);
+
+  inline SchedulerStatusResponse(const SchedulerStatusResponse& from)
+      : SchedulerStatusResponse(nullptr, from) {}
+  SchedulerStatusResponse(SchedulerStatusResponse&& from) noexcept
+    : SchedulerStatusResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline SchedulerStatusResponse& operator=(const SchedulerStatusResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SchedulerStatusResponse& operator=(SchedulerStatusResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SchedulerStatusResponse& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SchedulerStatusResponse* internal_default_instance() {
+    return reinterpret_cast<const SchedulerStatusResponse*>(
+               &_SchedulerStatusResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    13;
+
+  friend void swap(SchedulerStatusResponse& a, SchedulerStatusResponse& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SchedulerStatusResponse* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SchedulerStatusResponse* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SchedulerStatusResponse* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SchedulerStatusResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const SchedulerStatusResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const SchedulerStatusResponse& from) {
+    SchedulerStatusResponse::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(SchedulerStatusResponse* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "epoch.SchedulerStatusResponse";
+  }
+  protected:
+  explicit SchedulerStatusResponse(::google::protobuf::Arena* arena);
+  SchedulerStatusResponse(::google::protobuf::Arena* arena, const SchedulerStatusResponse& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kConnectedWorkersFieldNumber = 1,
+    kIdleWorkersFieldNumber = 2,
+    kBusyWorkersFieldNumber = 3,
+    kPendingJobsFieldNumber = 4,
+  };
+  // uint32 connected_workers = 1;
+  void clear_connected_workers() ;
+  ::uint32_t connected_workers() const;
+  void set_connected_workers(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_connected_workers() const;
+  void _internal_set_connected_workers(::uint32_t value);
+
+  public:
+  // uint32 idle_workers = 2;
+  void clear_idle_workers() ;
+  ::uint32_t idle_workers() const;
+  void set_idle_workers(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_idle_workers() const;
+  void _internal_set_idle_workers(::uint32_t value);
+
+  public:
+  // uint32 busy_workers = 3;
+  void clear_busy_workers() ;
+  ::uint32_t busy_workers() const;
+  void set_busy_workers(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_busy_workers() const;
+  void _internal_set_busy_workers(::uint32_t value);
+
+  public:
+  // uint32 pending_jobs = 4;
+  void clear_pending_jobs() ;
+  ::uint32_t pending_jobs() const;
+  void set_pending_jobs(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_pending_jobs() const;
+  void _internal_set_pending_jobs(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:epoch.SchedulerStatusResponse)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      2, 4, 0,
+      0, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::uint32_t connected_workers_;
+    ::uint32_t idle_workers_;
+    ::uint32_t busy_workers_;
+    ::uint32_t pending_jobs_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_epoch_2eproto;
+};// -------------------------------------------------------------------
+
+class SchedulerStatusRequest final :
+    public ::google::protobuf::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:epoch.SchedulerStatusRequest) */ {
+ public:
+  inline SchedulerStatusRequest() : SchedulerStatusRequest(nullptr) {}
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR SchedulerStatusRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline SchedulerStatusRequest(const SchedulerStatusRequest& from)
+      : SchedulerStatusRequest(nullptr, from) {}
+  SchedulerStatusRequest(SchedulerStatusRequest&& from) noexcept
+    : SchedulerStatusRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline SchedulerStatusRequest& operator=(const SchedulerStatusRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SchedulerStatusRequest& operator=(SchedulerStatusRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SchedulerStatusRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SchedulerStatusRequest* internal_default_instance() {
+    return reinterpret_cast<const SchedulerStatusRequest*>(
+               &_SchedulerStatusRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    12;
+
+  friend void swap(SchedulerStatusRequest& a, SchedulerStatusRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SchedulerStatusRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SchedulerStatusRequest* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SchedulerStatusRequest* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SchedulerStatusRequest>(arena);
+  }
+  using ::google::protobuf::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const SchedulerStatusRequest& from) {
+    ::google::protobuf::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::google::protobuf::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const SchedulerStatusRequest& from) {
+    ::google::protobuf::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "epoch.SchedulerStatusRequest";
+  }
+  protected:
+  explicit SchedulerStatusRequest(::google::protobuf::Arena* arena);
+  SchedulerStatusRequest(::google::protobuf::Arena* arena, const SchedulerStatusRequest& from);
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:epoch.SchedulerStatusRequest)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  friend struct ::TableStruct_epoch_2eproto;
+};// -------------------------------------------------------------------
+
 class HyperparamConfig final :
     public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:epoch.HyperparamConfig) */ {
  public:
@@ -1719,6 +2073,7 @@ class GenerationRuntimeMetrics final :
     kQueueWaitMaxMsFieldNumber = 9,
     kDispatchSamplesFieldNumber = 10,
     kIdleGapSamplesFieldNumber = 11,
+    kQueueWaitMinMsFieldNumber = 13,
     kQueueWaitSamplesFieldNumber = 12,
   };
   // double dispatch_latency_p50_ms = 1;
@@ -1831,6 +2186,16 @@ class GenerationRuntimeMetrics final :
   void _internal_set_idle_gap_samples(::uint32_t value);
 
   public:
+  // double queue_wait_min_ms = 13;
+  void clear_queue_wait_min_ms() ;
+  double queue_wait_min_ms() const;
+  void set_queue_wait_min_ms(double value);
+
+  private:
+  double _internal_queue_wait_min_ms() const;
+  void _internal_set_queue_wait_min_ms(double value);
+
+  public:
   // uint32 queue_wait_samples = 12;
   void clear_queue_wait_samples() ;
   ::uint32_t queue_wait_samples() const;
@@ -1847,7 +2212,7 @@ class GenerationRuntimeMetrics final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      4, 12, 0,
+      4, 13, 0,
       0, 2>
       _table_;
   friend class ::google::protobuf::MessageLite;
@@ -1875,6 +2240,7 @@ class GenerationRuntimeMetrics final :
     double queue_wait_max_ms_;
     ::uint32_t dispatch_samples_;
     ::uint32_t idle_gap_samples_;
+    double queue_wait_min_ms_;
     ::uint32_t queue_wait_samples_;
     mutable ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -4717,6 +5083,29 @@ inline void GenerationRuntimeMetrics::_internal_set_queue_wait_max_ms(double val
   _impl_.queue_wait_max_ms_ = value;
 }
 
+// double queue_wait_min_ms = 13;
+inline void GenerationRuntimeMetrics::clear_queue_wait_min_ms() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.queue_wait_min_ms_ = 0;
+}
+inline double GenerationRuntimeMetrics::queue_wait_min_ms() const {
+  // @@protoc_insertion_point(field_get:epoch.GenerationRuntimeMetrics.queue_wait_min_ms)
+  return _internal_queue_wait_min_ms();
+}
+inline void GenerationRuntimeMetrics::set_queue_wait_min_ms(double value) {
+  _internal_set_queue_wait_min_ms(value);
+  // @@protoc_insertion_point(field_set:epoch.GenerationRuntimeMetrics.queue_wait_min_ms)
+}
+inline double GenerationRuntimeMetrics::_internal_queue_wait_min_ms() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.queue_wait_min_ms_;
+}
+inline void GenerationRuntimeMetrics::_internal_set_queue_wait_min_ms(double value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.queue_wait_min_ms_ = value;
+}
+
 // uint32 dispatch_samples = 10;
 inline void GenerationRuntimeMetrics::clear_dispatch_samples() {
   PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
@@ -4979,6 +5368,106 @@ inline void GetResultsResponse::set_allocated_runtime_metrics(::epoch::Generatio
 
   _impl_.runtime_metrics_ = reinterpret_cast<::epoch::GenerationRuntimeMetrics*>(value);
   // @@protoc_insertion_point(field_set_allocated:epoch.GetResultsResponse.runtime_metrics)
+}
+
+// -------------------------------------------------------------------
+
+// SchedulerStatusRequest
+
+// -------------------------------------------------------------------
+
+// SchedulerStatusResponse
+
+// uint32 connected_workers = 1;
+inline void SchedulerStatusResponse::clear_connected_workers() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.connected_workers_ = 0u;
+}
+inline ::uint32_t SchedulerStatusResponse::connected_workers() const {
+  // @@protoc_insertion_point(field_get:epoch.SchedulerStatusResponse.connected_workers)
+  return _internal_connected_workers();
+}
+inline void SchedulerStatusResponse::set_connected_workers(::uint32_t value) {
+  _internal_set_connected_workers(value);
+  // @@protoc_insertion_point(field_set:epoch.SchedulerStatusResponse.connected_workers)
+}
+inline ::uint32_t SchedulerStatusResponse::_internal_connected_workers() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.connected_workers_;
+}
+inline void SchedulerStatusResponse::_internal_set_connected_workers(::uint32_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.connected_workers_ = value;
+}
+
+// uint32 idle_workers = 2;
+inline void SchedulerStatusResponse::clear_idle_workers() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.idle_workers_ = 0u;
+}
+inline ::uint32_t SchedulerStatusResponse::idle_workers() const {
+  // @@protoc_insertion_point(field_get:epoch.SchedulerStatusResponse.idle_workers)
+  return _internal_idle_workers();
+}
+inline void SchedulerStatusResponse::set_idle_workers(::uint32_t value) {
+  _internal_set_idle_workers(value);
+  // @@protoc_insertion_point(field_set:epoch.SchedulerStatusResponse.idle_workers)
+}
+inline ::uint32_t SchedulerStatusResponse::_internal_idle_workers() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.idle_workers_;
+}
+inline void SchedulerStatusResponse::_internal_set_idle_workers(::uint32_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.idle_workers_ = value;
+}
+
+// uint32 busy_workers = 3;
+inline void SchedulerStatusResponse::clear_busy_workers() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.busy_workers_ = 0u;
+}
+inline ::uint32_t SchedulerStatusResponse::busy_workers() const {
+  // @@protoc_insertion_point(field_get:epoch.SchedulerStatusResponse.busy_workers)
+  return _internal_busy_workers();
+}
+inline void SchedulerStatusResponse::set_busy_workers(::uint32_t value) {
+  _internal_set_busy_workers(value);
+  // @@protoc_insertion_point(field_set:epoch.SchedulerStatusResponse.busy_workers)
+}
+inline ::uint32_t SchedulerStatusResponse::_internal_busy_workers() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.busy_workers_;
+}
+inline void SchedulerStatusResponse::_internal_set_busy_workers(::uint32_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.busy_workers_ = value;
+}
+
+// uint32 pending_jobs = 4;
+inline void SchedulerStatusResponse::clear_pending_jobs() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pending_jobs_ = 0u;
+}
+inline ::uint32_t SchedulerStatusResponse::pending_jobs() const {
+  // @@protoc_insertion_point(field_get:epoch.SchedulerStatusResponse.pending_jobs)
+  return _internal_pending_jobs();
+}
+inline void SchedulerStatusResponse::set_pending_jobs(::uint32_t value) {
+  _internal_set_pending_jobs(value);
+  // @@protoc_insertion_point(field_set:epoch.SchedulerStatusResponse.pending_jobs)
+}
+inline ::uint32_t SchedulerStatusResponse::_internal_pending_jobs() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.pending_jobs_;
+}
+inline void SchedulerStatusResponse::_internal_set_pending_jobs(::uint32_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pending_jobs_ = value;
 }
 
 #ifdef __GNUC__

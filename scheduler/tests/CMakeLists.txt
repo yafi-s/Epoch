@@ -11,3 +11,7 @@ gtest_discover_tests(test_worker_pool)
 add_executable(test_metrics_collector test_metrics_collector.cc)
 target_link_libraries(test_metrics_collector PRIVATE epoch_scheduler_lib GTest::gtest_main)
 gtest_discover_tests(test_metrics_collector)
+
+add_executable(test_service_impl test_service_impl.cc)
+target_link_libraries(test_service_impl PRIVATE epoch_scheduler_lib GTest::gtest_main)
+gtest_discover_tests(test_service_impl)

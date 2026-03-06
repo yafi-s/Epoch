@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
+
+RESULTS_DIR="${RESULTS_DIR:-results/modal_benchmark_t4_w10}"
+OUTPUT_NAME="${OUTPUT_NAME:-ga_benchmark_g12_p120}"
+mkdir -p "$RESULTS_DIR"
+
+MODE="${MODE:-stress}"
+DATASET="${DATASET:-mnist}"
+POP_SIZE="${POP_SIZE:-120}"
+GENERATIONS="${GENERATIONS:-12}"
+SCHEDULER_ADDRESS="${SCHEDULER_ADDRESS:-localhost:50051}"
+EXPECTED_WORKERS="${EXPECTED_WORKERS:-10}"
+WAIT_FOR_IDLE_WORKERS="${WAIT_FOR_IDLE_WORKERS:-10}"
+READINESS_TIMEOUT_S="${READINESS_TIMEOUT_S:-300}"
+METRIC_CLOCK_SOURCE="${METRIC_CLOCK_SOURCE:-first_dispatch}"
+IMMIGRANT_RATE="${IMMIGRANT_RATE:-0.15}"
+PLATEAU_PATIENCE_GENS="${PLATEAU_PATIENCE_GENS:-2}"
+PLATEAU_MIN_DELTA="${PLATEAU_MIN_DELTA:-0.0009765625}"
+PLATEAU_IMMIGRANT_RATE="${PLATEAU_IMMIGRANT_RATE:-0.35}"
+PLATEAU_MUTATION_RATE_FLOOR="${PLATEAU_MUTATION_RATE_FLOOR:-0.30}"
+PLATEAU_REHEAT_GENS="${PLATEAU_REHEAT_GENS:-2}"
+GENOME_DEDUPE_MAX_RETRIES="${GENOME_DEDUPE_MAX_RETRIES:-8}"
+ADAPTIVE_NARROWING_ENABLED="${ADAPTIVE_NARROWING_ENABLED:-1}"
+ADAPTIVE_NARROWING_START_GEN="${ADAPTIVE_NARROWING_START_GEN:-4}"
+ADAPTIVE_ELITE_FRACTION="${ADAPTIVE_ELITE_FRACTION:-0.25}"
+ADAPTIVE_QUANTILE="${ADAPTIVE_QUANTILE:-0.20}"
+ADAPTIVE_MIN_SPAN_RATIO="${ADAPTIVE_MIN_SPAN_RATIO:-0.35}"
+ADAPTIVE_CATEGORICAL_BIAS="${ADAPTIVE_CATEGORICAL_BIAS:-0.60}"
+DETERMINISTIC_SEED_OFFSET="${DETERMINISTIC_SEED_OFFSET:-0}"
+THROUGHPUT_WORKER_COUNT="${THROUGHPUT_WORKER_COUNT:-10}"
+NETWORK_LATENCY_MS="${NETWORK_LATENCY_MS:-150}"
+MAX_WALL_CLOCK_S="${MAX_WALL_CLOCK_S:-1200}"
+
+poetry run python run_ga.py \
+  --mode "$MODE" \
+  --dataset "$DATASET" \
+  --pop-size "$POP_SIZE" \
+  --generations "$GENERATIONS" \
+  --scheduler-address "$SCHEDULER_ADDRESS" \
+  --expected-workers "$EXPECTED_WORKERS" \
+  --wait-for-idle-workers "$WAIT_FOR_IDLE_WORKERS" \
+  --readiness-timeout-s "$READINESS_TIMEOUT_S" \
+  --metric-clock-source "$METRIC_CLOCK_SOURCE" \
+  --immigrant-rate "$IMMIGRANT_RATE" \
+  --plateau-patience-gens "$PLATEAU_PATIENCE_GENS" \
+  --plateau-min-delta "$PLATEAU_MIN_DELTA" \
+  --plateau-immigrant-rate "$PLATEAU_IMMIGRANT_RATE" \
+  --plateau-mutation-rate-floor "$PLATEAU_MUTATION_RATE_FLOOR" \
+  --plateau-reheat-gens "$PLATEAU_REHEAT_GENS" \
+  --plateau-reset-on-any-new-best \
+  --genome-dedupe-max-retries "$GENOME_DEDUPE_MAX_RETRIES" \
+  --adaptive-narrowing-enabled "$ADAPTIVE_NARROWING_ENABLED" \
+  --adaptive-narrowing-start-gen "$ADAPTIVE_NARROWING_START_GEN" \
+  --adaptive-elite-fraction "$ADAPTIVE_ELITE_FRACTION" \
+  --adaptive-quantile "$ADAPTIVE_QUANTILE" \
+  --adaptive-min-span-ratio "$ADAPTIVE_MIN_SPAN_RATIO" \
+  --adaptive-categorical-bias "$ADAPTIVE_CATEGORICAL_BIAS" \
+  --deterministic-eval \
+  --deterministic-seed-offset "$DETERMINISTIC_SEED_OFFSET" \
+  --throughput-worker-count "$THROUGHPUT_WORKER_COUNT" \
+  --network-latency-ms "$NETWORK_LATENCY_MS" \
+  --max-wall-clock-s "$MAX_WALL_CLOCK_S" \
+  --output "$RESULTS_DIR/${OUTPUT_NAME}.json" \
+  --summary-output "$RESULTS_DIR/${OUTPUT_NAME}_summary.json"

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import time
 from dataclasses import dataclass
@@ -26,6 +28,7 @@ _NUM_CLASSES = {
     "mnist": 10,
     "cifar10": 10,
 }
+_MAX_SEED = 2_147_483_647
 
 
 @dataclass
@@ -72,6 +75,39 @@ def _load_dataset(name: str) -> tuple[Any, Any, Any, Any]:
     return x_train, y_train, x_test, y_test
 
 
+def _normalize_for_hash(value: Any) -> Any:
+    """Normalize nested values to a deterministic JSON-serializable structure."""
+    if isinstance(value, dict):
+        return {str(k): _normalize_for_hash(value[k]) for k in sorted(value)}
+    if isinstance(value, (list, tuple)):
+        return [_normalize_for_hash(v) for v in value]
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, float):
+        if np.isnan(value):
+            return "NaN"
+        if np.isposinf(value):
+            return "Infinity"
+        if np.isneginf(value):
+            return "-Infinity"
+    return value
+
+
+def _stable_genome_seed(genome: dict[str, Any], seed_offset: int = 0) -> int:
+    """Derive a stable positive seed from canonical genome content."""
+    normalized = _normalize_for_hash(genome)
+    canonical = json.dumps(
+        normalized,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    )
+    digest = hashlib.sha256(canonical.encode("utf-8")).digest()
+    base_seed = int.from_bytes(digest[:8], byteorder="big", signed=False) % _MAX_SEED
+    seed = (base_seed + int(seed_offset)) % _MAX_SEED
+    return seed if seed > 0 else 1
+
+
 class Trainer:
     """Trains a Keras model according to a hyperparameter genome.
 
@@ -85,11 +121,31 @@ class Trainer:
         train_subset_size: int = 0,
         val_subset_size: int = 0,
         run_eagerly: bool = False,
+        gc_every_n_jobs: int = 1,
+        deterministic_eval: bool = True,
+        deterministic_seed_offset: int = 0,
     ) -> None:
         self.timeout_seconds = timeout_seconds
         self.train_subset_size = train_subset_size
         self.val_subset_size = val_subset_size
         self.run_eagerly = run_eagerly
+        self.gc_every_n_jobs = max(1, int(gc_every_n_jobs))
+        self.deterministic_eval = bool(deterministic_eval)
+        self.deterministic_seed_offset = int(deterministic_seed_offset)
+        self._jobs_completed = 0
+
+    def _should_collect_gc(self) -> bool:
+        """Increment per-job counter and decide whether to trigger GC."""
+        self._jobs_completed += 1
+        return (self._jobs_completed % self.gc_every_n_jobs) == 0
+
+    def _resolve_job_seed(self, genome: dict[str, Any]) -> int | None:
+        if not self.deterministic_eval:
+            return None
+        return _stable_genome_seed(
+            genome,
+            seed_offset=self.deterministic_seed_offset,
+        )
 
     def train(self, genome: dict[str, Any]) -> TrainResult:
         """Build and train a model, returning the result.
@@ -104,7 +160,14 @@ class Trainer:
         epochs = int(genome.get("epochs", 10))
         batch_size = int(genome.get("batch_size", 32))
 
+        model = None
+        build_ms = 0
+        fit_ms = 0
         try:
+            job_seed = self._resolve_job_seed(genome)
+            if job_seed is not None:
+                tf.keras.utils.set_random_seed(job_seed)
+
             x_train, y_train, x_test, y_test = _load_dataset(dataset_name)
 
             if self.train_subset_size > 0:
@@ -130,7 +193,9 @@ class Trainer:
                 input_shape=input_shape,
                 run_eagerly=self.run_eagerly,
             )
+            build_started = time.monotonic()
             model = builder.build(genome)
+            build_ms = int((time.monotonic() - build_started) * 1000)
 
             # Timeout callback
             class TimeoutCallback(tf.keras.callbacks.Callback):
@@ -163,6 +228,7 @@ class Trainer:
                 callbacks=[TimeoutCallback(self.timeout_seconds)],
             )
             elapsed_ms = int((time.monotonic() - start) * 1000)
+            fit_ms = elapsed_ms
 
             # Check if we timed out
             if time.monotonic() - start > self.timeout_seconds:
@@ -188,10 +254,11 @@ class Trainer:
             train_loss = float(hist["loss"][-1])
 
             logger.info(
-                "Training complete: val_acc=%.4f loss=%.4f time=%dms",
+                "Training complete: val_acc=%.4f loss=%.4f fit_ms=%d build_ms=%d",
                 val_acc,
                 train_loss,
-                elapsed_ms,
+                fit_ms,
+                build_ms,
             )
 
             return TrainResult(
@@ -209,12 +276,24 @@ class Trainer:
             )
 
         finally:
+            cleanup_started = time.monotonic()
             # Delete model weights without destroying the TF runtime.
-            # clear_session() is too expensive (~2s) — it tears down the entire
+            # clear_session() is too expensive (~2s) - it tears down the entire
             # GPU context, forcing full reinit on the next job.
             try:
                 del model
-            except UnboundLocalError:
+            except Exception:
                 pass
             import gc
-            gc.collect()
+
+            ran_gc = self._should_collect_gc()
+            if ran_gc:
+                gc.collect()
+            cleanup_ms = int((time.monotonic() - cleanup_started) * 1000)
+            logger.debug(
+                "Job phases: build_ms=%d fit_ms=%d cleanup_ms=%d gc_ran=%s",
+                build_ms,
+                fit_ms,
+                cleanup_ms,
+                ran_gc,
+            )

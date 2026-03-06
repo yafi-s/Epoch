@@ -77,6 +77,7 @@ WorkerService::Service::~Service() {
 static const char* SchedulerControl_method_names[] = {
   "/epoch.SchedulerControl/SubmitGeneration",
   "/epoch.SchedulerControl/GetGenerationResults",
+  "/epoch.SchedulerControl/GetSchedulerStatus",
 };
 
 std::unique_ptr< SchedulerControl::Stub> SchedulerControl::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -88,6 +89,7 @@ std::unique_ptr< SchedulerControl::Stub> SchedulerControl::NewStub(const std::sh
 SchedulerControl::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_SubmitGeneration_(SchedulerControl_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_GetGenerationResults_(SchedulerControl_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetSchedulerStatus_(SchedulerControl_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status SchedulerControl::Stub::SubmitGeneration(::grpc::ClientContext* context, const ::epoch::SubmitGenerationRequest& request, ::epoch::SubmitGenerationResponse* response) {
@@ -136,6 +138,29 @@ void SchedulerControl::Stub::async::GetGenerationResults(::grpc::ClientContext* 
   return result;
 }
 
+::grpc::Status SchedulerControl::Stub::GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::epoch::SchedulerStatusResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetSchedulerStatus_, context, request, response);
+}
+
+void SchedulerControl::Stub::async::GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetSchedulerStatus_, context, request, response, std::move(f));
+}
+
+void SchedulerControl::Stub::async::GetSchedulerStatus(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetSchedulerStatus_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>* SchedulerControl::Stub::PrepareAsyncGetSchedulerStatusRaw(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::epoch::SchedulerStatusResponse, ::epoch::SchedulerStatusRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetSchedulerStatus_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::epoch::SchedulerStatusResponse>* SchedulerControl::Stub::AsyncGetSchedulerStatusRaw(::grpc::ClientContext* context, const ::epoch::SchedulerStatusRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetSchedulerStatusRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 SchedulerControl::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       SchedulerControl_method_names[0],
@@ -157,6 +182,16 @@ SchedulerControl::Service::Service() {
              ::epoch::GetResultsResponse* resp) {
                return service->GetGenerationResults(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      SchedulerControl_method_names[2],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< SchedulerControl::Service, ::epoch::SchedulerStatusRequest, ::epoch::SchedulerStatusResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](SchedulerControl::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::epoch::SchedulerStatusRequest* req,
+             ::epoch::SchedulerStatusResponse* resp) {
+               return service->GetSchedulerStatus(ctx, req, resp);
+             }, this)));
 }
 
 SchedulerControl::Service::~Service() {
@@ -170,6 +205,13 @@ SchedulerControl::Service::~Service() {
 }
 
 ::grpc::Status SchedulerControl::Service::GetGenerationResults(::grpc::ServerContext* context, const ::epoch::GetResultsRequest* request, ::epoch::GetResultsResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status SchedulerControl::Service::GetSchedulerStatus(::grpc::ServerContext* context, const ::epoch::SchedulerStatusRequest* request, ::epoch::SchedulerStatusResponse* response) {
   (void) context;
   (void) request;
   (void) response;

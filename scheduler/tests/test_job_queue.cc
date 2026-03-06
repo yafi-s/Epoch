@@ -129,5 +129,64 @@ TEST(JobQueueTest, DuplicateTerminalTransitionsAreIgnored) {
     EXPECT_FALSE(queue.MarkFailed(job->job_id, "duplicate failure"));
 }
 
+TEST(JobQueueTest, EstimatedCostDispatchPrioritizesHeavierJobs) {
+    JobQueue queue;
+    queue.SetDispatchStrategy(DispatchStrategy::kEstimatedCost);
+
+    HyperparamConfig fast = MakeConfig(0.01);
+    fast.set_epochs(1);
+    fast.set_batch_size(256);
+    fast.clear_conv_filters();
+    fast.add_conv_filters(8);
+    fast.add_conv_filters(16);
+    fast.add_conv_filters(16);
+    fast.clear_dense_units();
+    fast.add_dense_units(32);
+
+    HyperparamConfig slow = MakeConfig(0.01);
+    slow.set_epochs(2);
+    slow.set_batch_size(32);
+    slow.clear_conv_filters();
+    slow.add_conv_filters(32);
+    slow.add_conv_filters(64);
+    slow.add_conv_filters(64);
+    slow.clear_dense_units();
+    slow.add_dense_units(128);
+
+    queue.EnqueueBatch(0, {fast, slow});
+
+    auto first = queue.TryDequeue();
+    ASSERT_TRUE(first.has_value());
+    EXPECT_EQ(first->config.batch_size(), 32);
+    EXPECT_EQ(first->config.epochs(), 2);
+
+    auto second = queue.TryDequeue();
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(second->config.batch_size(), 256);
+    EXPECT_EQ(second->config.epochs(), 1);
+}
+
+TEST(JobQueueTest, FifoDispatchPreservesInsertionOrder) {
+    JobQueue queue;
+    queue.SetDispatchStrategy(DispatchStrategy::kFifo);
+
+    HyperparamConfig first_cfg = MakeConfig(0.01);
+    first_cfg.set_batch_size(256);
+
+    HyperparamConfig second_cfg = MakeConfig(0.01);
+    second_cfg.set_batch_size(16);
+    second_cfg.set_epochs(3);
+
+    queue.EnqueueBatch(0, {first_cfg, second_cfg});
+
+    auto first = queue.TryDequeue();
+    ASSERT_TRUE(first.has_value());
+    EXPECT_EQ(first->config.batch_size(), 256);
+
+    auto second = queue.TryDequeue();
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(second->config.batch_size(), 16);
+}
+
 }  // namespace
 }  // namespace epoch

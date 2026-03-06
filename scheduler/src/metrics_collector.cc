@@ -78,6 +78,9 @@ MetricsCollector::GenerationRuntimeMetrics MetricsCollector::GetGenerationRuntim
     auto queue_it = gen_queue_wait_ms_.find(generation_id);
     if (queue_it != gen_queue_wait_ms_.end()) {
         out.queue_wait = Summarize(queue_it->second);
+        if (!queue_it->second.empty()) {
+            out.queue_wait_min_ms = *min_element(queue_it->second.begin(), queue_it->second.end());
+        }
     }
 
     return out;

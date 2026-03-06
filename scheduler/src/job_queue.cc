@@ -1,10 +1,35 @@
 
 #include "epoch/job_queue.h"
+
+#include <algorithm>
 #include <sstream>
 
 using namespace std;
 
 namespace epoch {
+
+double JobQueue::EstimateJobCost(const HyperparamConfig& config) {
+    const int epochs = max(1, config.epochs());
+    const int batch_size = max(1, config.batch_size());
+
+    int conv_sum = 0;
+    if (config.conv_filters_size() > 0) {
+        for (const int filters : config.conv_filters()) {
+            conv_sum += max(0, filters);
+        }
+    } else {
+        conv_sum = 32 + 64 + 128;
+    }
+
+    int dense_units = 128;
+    if (config.dense_units_size() > 0) {
+        dense_units = max(0, config.dense_units(0));
+    }
+
+    const double model_scale = static_cast<double>(conv_sum) + (static_cast<double>(dense_units) / 4.0);
+    const double batch_factor = 128.0 / static_cast<double>(batch_size);
+    return static_cast<double>(epochs) * model_scale * batch_factor;
+}
 
 int JobQueue::EnqueueBatch(int32_t generation_id,
                            const vector<HyperparamConfig>& configs) {
@@ -43,8 +68,24 @@ optional<Job> JobQueue::TryDequeue() {
         return nullopt;
     }
 
-    string job_id = pending_.front();
-    pending_.erase(pending_.begin());
+    size_t index = 0;
+    if (dispatch_strategy_ == DispatchStrategy::kEstimatedCost && pending_.size() > 1) {
+        double best_cost = -1.0;
+        for (size_t i = 0; i < pending_.size(); ++i) {
+            auto it = jobs_.find(pending_[i]);
+            if (it == jobs_.end()) {
+                continue;
+            }
+            const double cost = EstimateJobCost(it->second.config);
+            if (cost > best_cost) {
+                best_cost = cost;
+                index = i;
+            }
+        }
+    }
+
+    const string job_id = pending_[index];
+    pending_.erase(pending_.begin() + index);
 
     auto it = jobs_.find(job_id);
     if (it == jobs_.end()) {
@@ -54,6 +95,11 @@ optional<Job> JobQueue::TryDequeue() {
     it->second.state = JobState::kDispatched;
     it->second.dequeued_at = chrono::steady_clock::now();
     return it->second;
+}
+
+void JobQueue::SetDispatchStrategy(DispatchStrategy strategy) {
+    lock_guard<mutex> lock(mu_);
+    dispatch_strategy_ = strategy;
 }
 
 bool JobQueue::MarkCompleted(const string& job_id, const TrainingResult& result) {

@@ -21,6 +21,7 @@ class MutationStrategy(ABC):
         rng: random.Random,
         generation: int = 0,
         max_generations: int = 1,
+        rate_floor: float | None = None,
     ) -> Individual:
         """Mutate an individual in-place and return it.
 
@@ -30,6 +31,7 @@ class MutationStrategy(ABC):
             rng: Random number generator.
             generation: Current generation number (for adaptive schemes).
             max_generations: Total number of generations (for adaptive schemes).
+            rate_floor: Optional lower-bound override on mutation probability.
 
         Returns:
             The mutated individual.
@@ -55,8 +57,10 @@ class GaussianMutation(MutationStrategy):
         rng: random.Random,
         generation: int = 0,
         max_generations: int = 1,
+        rate_floor: float | None = None,
     ) -> Individual:
         """Apply Gaussian mutation to each gene with probability mutation_rate."""
+        _ = rate_floor
         for param in space.params:
             if rng.random() >= self.mutation_rate:
                 continue
@@ -95,12 +99,18 @@ class AdaptiveMutation(MutationStrategy):
         self.final_rate = final_rate
         self.sigma = sigma
 
-    def _current_rate(self, generation: int, max_generations: int) -> float:
+    def _current_rate(
+        self, generation: int, max_generations: int, rate_floor: float | None = None
+    ) -> float:
         """Linearly interpolate mutation rate based on generation progress."""
         if max_generations <= 1:
-            return self.initial_rate
-        t = generation / (max_generations - 1)
-        return self.initial_rate + t * (self.final_rate - self.initial_rate)
+            rate = self.initial_rate
+        else:
+            t = generation / (max_generations - 1)
+            rate = self.initial_rate + t * (self.final_rate - self.initial_rate)
+        if rate_floor is not None:
+            rate = max(rate, float(rate_floor))
+        return rate
 
     def mutate(
         self,
@@ -109,9 +119,10 @@ class AdaptiveMutation(MutationStrategy):
         rng: random.Random,
         generation: int = 0,
         max_generations: int = 1,
+        rate_floor: float | None = None,
     ) -> Individual:
         """Apply mutation with generation-adaptive rate."""
-        rate = self._current_rate(generation, max_generations)
+        rate = self._current_rate(generation, max_generations, rate_floor=rate_floor)
 
         for param in space.params:
             if rng.random() >= rate:

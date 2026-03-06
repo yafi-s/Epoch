@@ -99,5 +99,23 @@ TEST(WorkerPoolTest, IdleCountWithMultipleWorkers) {
     EXPECT_EQ(pool.IdleCount(), 1u);
 }
 
+TEST(WorkerPoolTest, BusyCountTracksBusyWorkersOnly) {
+    WorkerPool pool;
+    pool.RegisterWorker(MakeSession("w0"));
+    pool.RegisterWorker(MakeSession("w1"));
+    pool.RegisterWorker(MakeSession("w2"));
+
+    EXPECT_EQ(pool.BusyCount(), 0u);
+    pool.MarkWorkerBusy("w0");
+    pool.MarkWorkerBusy("w1");
+    EXPECT_EQ(pool.BusyCount(), 2u);
+
+    pool.MarkWorkerIdle("w0");
+    EXPECT_EQ(pool.BusyCount(), 1u);
+
+    pool.MarkWorkerDead("w1");
+    EXPECT_EQ(pool.BusyCount(), 0u);
+}
+
 }  // namespace
 }  // namespace epoch

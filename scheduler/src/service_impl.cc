@@ -10,6 +10,7 @@ using namespace std;
 namespace epoch {
 
 EpochServiceImpl::EpochServiceImpl(const Config& config) : config_(config) {
+    job_queue_.SetDispatchStrategy(config_.dispatch_strategy);
     if (!config_.metrics_log_path.empty()) {
         metrics_log_stream_.open(config_.metrics_log_path, ios::out | ios::trunc);
         if (!metrics_log_stream_) {
@@ -171,11 +172,25 @@ grpc::Status EpochServiceImpl::GetGenerationResults(
         proto_metrics->set_queue_wait_p50_ms(runtime_metrics.queue_wait.p50_ms);
         proto_metrics->set_queue_wait_p90_ms(runtime_metrics.queue_wait.p90_ms);
         proto_metrics->set_queue_wait_max_ms(runtime_metrics.queue_wait.max_ms);
+        proto_metrics->set_queue_wait_min_ms(runtime_metrics.queue_wait_min_ms);
         proto_metrics->set_dispatch_samples(runtime_metrics.dispatch_latency.samples);
         proto_metrics->set_idle_gap_samples(runtime_metrics.worker_idle_gap.samples);
         proto_metrics->set_queue_wait_samples(runtime_metrics.queue_wait.samples);
     }
 
+    return grpc::Status::OK;
+}
+
+grpc::Status EpochServiceImpl::GetSchedulerStatus(
+    grpc::ServerContext* context,
+    const SchedulerStatusRequest* request,
+    SchedulerStatusResponse* response) {
+    static_cast<void>(context);
+    static_cast<void>(request);
+    response->set_connected_workers(static_cast<uint32_t>(worker_pool_.Size()));
+    response->set_idle_workers(static_cast<uint32_t>(worker_pool_.IdleCount()));
+    response->set_busy_workers(static_cast<uint32_t>(worker_pool_.BusyCount()));
+    response->set_pending_jobs(static_cast<uint32_t>(job_queue_.PendingCount()));
     return grpc::Status::OK;
 }
 

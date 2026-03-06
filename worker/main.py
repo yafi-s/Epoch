@@ -14,6 +14,14 @@ os.environ.setdefault("TF_XLA_FLAGS", "--tf_xla_auto_jit=0")
 os.environ.setdefault("TF_GPU_ALLOCATOR", "cuda_malloc_async")
 os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
 
+
+def _env_flag(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _configure_gpu(memory_limit_mb: int = 750) -> None:
     """Limit each worker to a fixed slice of GPU memory and disable XLA."""
     import tensorflow as tf
@@ -77,6 +85,24 @@ def main() -> None:
         help="Run TF in eager mode (avoids graph retracing overhead for varied architectures)",
     )
     parser.add_argument(
+        "--gc-every-n-jobs",
+        type=int,
+        default=int(os.environ.get("EPOCH_GC_EVERY_N_JOBS", "1")),
+        help="Run Python gc.collect() every N completed jobs (default: 1)",
+    )
+    parser.add_argument(
+        "--deterministic-eval",
+        action=argparse.BooleanOptionalAction,
+        default=_env_flag("EPOCH_DETERMINISTIC_EVAL", True),
+        help="Use deterministic per-genome RNG seeding for training (default: enabled)",
+    )
+    parser.add_argument(
+        "--deterministic-seed-offset",
+        type=int,
+        default=int(os.environ.get("EPOCH_DETERMINISTIC_SEED_OFFSET", "0")),
+        help="Integer offset added to deterministic per-genome seed (default: 0)",
+    )
+    parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -111,6 +137,9 @@ def main() -> None:
         train_subset_size=args.train_subset_size,
         val_subset_size=args.val_subset_size,
         run_eagerly=args.run_eagerly,
+        gc_every_n_jobs=args.gc_every_n_jobs,
+        deterministic_eval=args.deterministic_eval,
+        deterministic_seed_offset=args.deterministic_seed_offset,
     )
     client = WorkerClient(
         worker_id=args.worker_id,

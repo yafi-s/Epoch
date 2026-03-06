@@ -15,7 +15,20 @@ class TestMetricsStore:
 
         assert len(store.generations) == 2
         assert store.generations[0].best_fitness == 0.8
+        assert store.generations[0].best_so_far == 0.8
         assert store.generations[1].best_fitness == 0.9
+
+    def test_record_with_explicit_best_so_far(self):
+        store = MetricsStore(run_name="test")
+        store.record_generation(
+            0,
+            best_fitness=0.8,
+            avg_fitness=0.5,
+            worst_fitness=0.2,
+            wall_clock_ms=1000,
+            best_so_far=0.9,
+        )
+        assert store.generations[0].best_so_far == 0.9
 
     def test_final_best_fitness(self):
         store = MetricsStore()
@@ -62,4 +75,24 @@ class TestMetricsStore:
             assert loaded.run_name == "roundtrip_test"
             assert len(loaded.generations) == 2
             assert loaded.generations[0].best_fitness == 0.8
+            assert loaded.generations[0].best_so_far == 0.8
             assert loaded.generations[1].wall_clock_ms == 800
+
+    def test_from_json_backward_compatible_without_best_so_far(self):
+        payload = {
+            "run_name": "legacy",
+            "generations": [
+                {
+                    "generation": 0,
+                    "best_fitness": 0.7,
+                    "avg_fitness": 0.5,
+                    "worst_fitness": 0.2,
+                    "wall_clock_ms": 100,
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "legacy.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            loaded = MetricsStore.from_json(path)
+            assert loaded.generations[0].best_so_far == 0.7

@@ -48,6 +48,9 @@ public:
     /// Number of idle workers.
     size_t IdleCount() const;
 
+    /// Number of busy workers.
+    size_t BusyCount() const;
+
 private:
     mutable mutex mu_;
     unordered_map<string, shared_ptr<WorkerSession>> workers_;

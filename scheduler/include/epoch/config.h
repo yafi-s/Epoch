@@ -7,10 +7,19 @@ using namespace std;
 
 namespace epoch {
 
+enum class DispatchStrategy {
+    kFifo = 0,
+    kEstimatedCost = 1,
+};
+
+/// Human-readable representation of dispatch strategy.
+string DispatchStrategyToString(DispatchStrategy strategy);
+
 /// Server configuration parsed from CLI flags and environment variables.
 struct Config {
     string listen_address = "0.0.0.0:50051";
     uint32_t dispatch_interval_ms = 10;
+    DispatchStrategy dispatch_strategy = DispatchStrategy::kFifo;
     uint32_t heartbeat_check_interval_ms = 5000;
     uint32_t heartbeat_timeout_ms = 30000;
     string worker_auth_key = "superkey";
