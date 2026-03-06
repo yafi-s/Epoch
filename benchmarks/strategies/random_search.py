@@ -32,15 +32,26 @@ class RandomSearch(SearchStrategy):
     def run(
         self,
         space: SearchSpace,
-        budget: int,
         trainer: Trainer,
+        *,
+        budget: int | None = None,
+        max_wall_clock_s: float | None = None,
     ) -> MetricsStore:
-        """Evaluate `budget` random configurations."""
+        """Evaluate random configurations within the provided limits."""
         rng = random.Random(self.seed)
         store = MetricsStore(run_name=self.name())
         best_fitness = 0.0
+        eval_idx = 0
+        budget, deadline = self._resolve_limits(
+            budget=budget,
+            max_wall_clock_s=max_wall_clock_s,
+        )
 
-        for i in range(budget):
+        while not self._should_stop(
+            evals_completed=eval_idx,
+            budget=budget,
+            deadline_monotonic=deadline,
+        ):
             start = time.monotonic()
             genome = space.random_sample(rng)
             genome["dataset"] = self.dataset
@@ -51,11 +62,13 @@ class RandomSearch(SearchStrategy):
             elapsed_ms = int((time.monotonic() - start) * 1000)
 
             store.record_generation(
-                generation=i,
+                generation=eval_idx,
                 best_fitness=best_fitness,
+                best_so_far=best_fitness,
                 avg_fitness=fitness,
                 worst_fitness=fitness,
                 wall_clock_ms=elapsed_ms,
             )
+            eval_idx += 1
 
         return store

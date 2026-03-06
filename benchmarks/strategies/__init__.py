@@ -2,7 +2,16 @@
 
 from benchmarks.strategies.base import SearchStrategy
 from benchmarks.strategies.bayesian_search import BayesianSearch
+from benchmarks.strategies.differential_evolution import DifferentialEvolution
 from benchmarks.strategies.grid_search import GridSearch
 from benchmarks.strategies.random_search import RandomSearch
+from benchmarks.strategies.simulated_annealing import SimulatedAnnealing
 
-__all__ = ["SearchStrategy", "RandomSearch", "GridSearch", "BayesianSearch"]
+__all__ = [
+    "SearchStrategy",
+    "RandomSearch",
+    "GridSearch",
+    "BayesianSearch",
+    "DifferentialEvolution",
+    "SimulatedAnnealing",
+]

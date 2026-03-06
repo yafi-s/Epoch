@@ -34,16 +34,29 @@ class BayesianSearch(SearchStrategy):
     def run(
         self,
         space: SearchSpace,
-        budget: int,
         trainer: Trainer,
+        *,
+        budget: int | None = None,
+        max_wall_clock_s: float | None = None,
     ) -> MetricsStore:
-        """Run Bayesian optimization for `budget` trials."""
+        """Run Bayesian optimization within the provided limits."""
         store = MetricsStore(run_name=self.name())
         best_fitness = 0.0
-        trial_index = [0]
+        eval_idx = 0
+        budget, deadline = self._resolve_limits(
+            budget=budget,
+            max_wall_clock_s=max_wall_clock_s,
+        )
+        optuna.logging.set_verbosity(optuna.logging.WARNING)
+        sampler = optuna.samplers.TPESampler(seed=self.seed)
+        study = optuna.create_study(direction="maximize", sampler=sampler)
 
-        def objective(trial: optuna.Trial) -> float:
-            nonlocal best_fitness
+        while not self._should_stop(
+            evals_completed=eval_idx,
+            budget=budget,
+            deadline_monotonic=deadline,
+        ):
+            trial = study.ask()
             start = time.monotonic()
 
             genome: dict[str, Any] = {}
@@ -74,19 +87,14 @@ class BayesianSearch(SearchStrategy):
             elapsed_ms = int((time.monotonic() - start) * 1000)
 
             store.record_generation(
-                generation=trial_index[0],
+                generation=eval_idx,
                 best_fitness=best_fitness,
+                best_so_far=best_fitness,
                 avg_fitness=fitness,
                 worst_fitness=fitness,
                 wall_clock_ms=elapsed_ms,
             )
-            trial_index[0] += 1
-
-            return fitness
-
-        sampler = optuna.samplers.TPESampler(seed=self.seed)
-        study = optuna.create_study(direction="maximize", sampler=sampler)
-        optuna.logging.set_verbosity(optuna.logging.WARNING)
-        study.optimize(objective, n_trials=budget)
+            study.tell(trial, fitness)
+            eval_idx += 1
 
         return store

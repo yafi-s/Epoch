@@ -36,11 +36,17 @@ class GridSearch(SearchStrategy):
     def run(
         self,
         space: SearchSpace,
-        budget: int,
         trainer: Trainer,
+        *,
+        budget: int | None = None,
+        max_wall_clock_s: float | None = None,
     ) -> MetricsStore:
-        """Evaluate grid configurations up to `budget`."""
+        """Evaluate grid configurations within the provided limits."""
         store = MetricsStore(run_name=self.name())
+        budget, deadline = self._resolve_limits(
+            budget=budget,
+            max_wall_clock_s=max_wall_clock_s,
+        )
 
         # Build grid values for each parameter
         grid_values: list[list[Any]] = []
@@ -56,11 +62,15 @@ class GridSearch(SearchStrategy):
             else:
                 grid_values.append(list(param.choices))
 
-        # Generate Cartesian product, limited to budget
-        all_combos = list(itertools.islice(itertools.product(*grid_values), budget))
-
         best_fitness = 0.0
-        for i, combo in enumerate(all_combos):
+        eval_idx = 0
+        for combo in itertools.product(*grid_values):
+            if self._should_stop(
+                evals_completed=eval_idx,
+                budget=budget,
+                deadline_monotonic=deadline,
+            ):
+                break
             start = time.monotonic()
             genome = {param.name: val for param, val in zip(space.params, combo)}
             genome["dataset"] = self.dataset
@@ -71,11 +81,13 @@ class GridSearch(SearchStrategy):
             elapsed_ms = int((time.monotonic() - start) * 1000)
 
             store.record_generation(
-                generation=i,
+                generation=eval_idx,
                 best_fitness=best_fitness,
+                best_so_far=best_fitness,
                 avg_fitness=fitness,
                 worst_fitness=fitness,
                 wall_clock_ms=elapsed_ms,
             )
+            eval_idx += 1
 
         return store
