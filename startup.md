@@ -175,3 +175,50 @@ Optional lint check:
 cd "/mnt/a/Careers and Jobs/Coding/Epoch"
 poetry run ruff check .
 ```
+
+## Benchmark Visualization Synthesis
+
+Generate the 2 line charts + radar chart from local benchmark outputs and the
+Modal GA reference:
+
+```bash
+cd "/mnt/a/Careers and Jobs/Coding/Epoch"
+poetry run python scripts/plot_benchmark_comparison.py \
+  --local-per-seed-dir results/local_benchmark_g12_p120/per_seed \
+  --modal-run-json results/modal_benchmark_t4_w10/ga_benchmark_g12_p120.json \
+  --modal-summary-json results/modal_benchmark_t4_w10/ga_benchmark_g12_p120_summary.json \
+  --output-dir results/local_benchmark_g12_p120/figures \
+  --bins 12
+```
+
+## Optional: Scale Modal Workers (e.g., 19 workers)
+
+Use the launcher script with an override:
+
+```bash
+cd "/mnt/a/Careers and Jobs/Coding/Epoch"
+NUM_WORKERS=19 bash scripts/launch_modal_benchmark_workers.sh 0.tcp.ngrok.io:14768
+```
+
+## Publish Graph Assets To README
+
+`results/` is gitignored, so copy generated charts to a tracked folder before push:
+
+```bash
+cd "/mnt/a/Careers and Jobs/Coding/Epoch"
+mkdir -p docs/figures
+cp results/local_benchmark_g12_p120/figures/fitness_vs_generation_bins.png docs/figures/
+cp results/local_benchmark_g12_p120/figures/runtime_vs_generation_bins.png docs/figures/
+cp results/local_benchmark_g12_p120/figures/radar_comparison.png docs/figures/
+```
+
+## Push All Changes To Main
+
+```bash
+cd "/mnt/a/Careers and Jobs/Coding/Epoch"
+poetry run pytest -q
+gitleaks detect --source . --verbose
+git add -A
+git commit -m "Update benchmark docs, visuals, and latest codebase changes"
+git push origin HEAD:main
+```

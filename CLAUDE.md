@@ -160,7 +160,7 @@ Key env overrides:
 - GA adaptive search: `GA_ADAPTIVE_NARROWING_ENABLED`, `GA_ADAPTIVE_NARROWING_START_GEN`, `GA_ADAPTIVE_ELITE_FRACTION`, `GA_ADAPTIVE_QUANTILE`, `GA_ADAPTIVE_MIN_SPAN_RATIO`, `GA_ADAPTIVE_CATEGORICAL_BIAS`, `GA_GENOME_DEDUPE_MAX_RETRIES`
 - throughput model: `THROUGHPUT_WORKER_COUNT`, `NETWORK_LATENCY_MS`
 - metric source: `GA_METRIC_CLOCK_SOURCE`
-- signal shaping: `SIGNAL_PRESET=balanced` (optional, off by default), `GA_LATE_EPOCH_BIAS`
+- signal shaping: `SIGNAL_PRESET` with value `balanced` (optional, off by default), `GA_LATE_EPOCH_BIAS`
 - worker determinism/runtime: `WORKER_DETERMINISTIC_EVAL`, `WORKER_DETERMINISTIC_SEED_OFFSET`, `GC_EVERY_N_JOBS`
 - topology: `START_LOCAL_WORKERS`, `SCHEDULER_PUBLIC_ADDRESS`, `GA_SCHEDULER_ADDRESS`
 - auth: `WORKER_AUTH_KEY` or `EPOCH_WORKER_AUTH_KEY`
@@ -230,6 +230,27 @@ Artifacts:
 Ranking for local algorithms is wall-clock-budgeted and sorted by median `best_fitness_peak` (desc),
 with a reference-only Modal GA row included but excluded from ranking.
 
+### Benchmark visualization synthesis
+```bash
+poetry run python scripts/plot_benchmark_comparison.py \
+  --local-per-seed-dir results/local_benchmark_g12_p120/per_seed \
+  --modal-run-json results/modal_benchmark_t4_w10/ga_benchmark_g12_p120.json \
+  --modal-summary-json results/modal_benchmark_t4_w10/ga_benchmark_g12_p120_summary.json \
+  --output-dir results/local_benchmark_g12_p120/figures \
+  --bins 12
+```
+
+Generated outputs:
+- `results/local_benchmark_g12_p120/figures/fitness_vs_generation_bins.png`
+- `results/local_benchmark_g12_p120/figures/runtime_vs_generation_bins.png`
+- `results/local_benchmark_g12_p120/figures/radar_comparison.png`
+- `results/local_benchmark_g12_p120/figures/visualization_summary.md`
+
+Radar behavior (current):
+- axes: `Peak Fitness`, `Time to 90% Peak (min)`, `Total Run Time (min)`, `Total Evals Completed`, `Convergence AUC`
+- direct raw/max normalization with display margin
+- spoke-specific zoom expansion on `Peak Fitness`, `Total Run Time`, and `Convergence AUC` for readability
+
 ## Common Change Workflows
 
 ### Add a hyperparameter
@@ -255,6 +276,13 @@ Pre-push scrutiny commands:
 ```bash
 poetry run pytest -q
 gitleaks detect --source . --verbose
+```
+
+Publish-to-README note:
+- `results/` is gitignored. Copy chart PNGs to `docs/figures/` before pushing if README embeds them.
+- Suggested push command when publishing current branch state directly to main:
+```bash
+git push origin HEAD:main
 ```
 
 Notes:
