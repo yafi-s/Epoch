@@ -42,4 +42,7 @@ select = ["E", "F", "I", "W"]
 known-first-party = ["ga", "worker", "metrics", "benchmarks"]
 
 [tool.pytest.ini_options]
-testpaths = ["ga/tests", "worker/tests", "metrics/tests", "benchmarks/tests"]
+testpaths = ["ga/tests", "worker/tests", "metrics/tests", "benchmarks/tests", "tests/integration"]
+markers = [
+    "integration: end-to-end tests that launch the C++ scheduler binary (skipped unless build/ is configured, a prebuilt binary exists, or EPOCH_INTEGRATION_BUILD=1)",
+]

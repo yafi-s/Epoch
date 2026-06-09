@@ -17,6 +17,11 @@ FetchContent_Declare(
 set(FETCHCONTENT_QUIET OFF)
 set(gRPC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+# The fetched deps are build-tree only; their install/export rules fail under
+# newer CMake (protobuf exports reference absl targets with no export set).
+set(gRPC_INSTALL OFF CACHE BOOL "" FORCE)
+set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
+set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(gRPC)
 
 # ─── Proto code generation ────────────────────────────────────────────────────
