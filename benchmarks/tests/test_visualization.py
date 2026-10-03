@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import pytest
 from pathlib import Path
 
 from benchmarks.visualization import (
@@ -13,6 +14,7 @@ from benchmarks.visualization import (
     compute_radar_metrics,
     compute_time_to_peak_fraction,
     generate_visualizations,
+    build_epoch_series,
     resample_to_progress_bins,
 )
 
@@ -35,6 +37,20 @@ def _write_run(path: Path, *, run_name: str, best_values: list[float], wall_ms: 
     payload = {"run_name": run_name, "generations": generations}
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def test_epoch_series_uses_successful_counts_and_same_total_clock(tmp_path):
+    run=tmp_path/'run.json'
+    summary=tmp_path/'summary.json'
+    _write_run(run,run_name='test',best_values=[.3,.5],wall_ms=[1000,1000])
+    summary.write_text(json.dumps({'metric_schema_version':2,'completed':300,'jobs_submitted':320,
+        'wall_clock_s':50.,'wall_clock_total_s':100.,'jobs_per_sec':6.,'best_fitness_peak':.5}))
+    series=build_epoch_series(run,summary)
+    assert series.total_evals==300 and series.total_runtime_s==100.
+    assert series.throughput_jobs_per_s==3.
+    summary.write_text(json.dumps({'jobs_submitted':320,'wall_clock_total_s':100.,'jobs_per_sec':46.099}))
+    with pytest.raises(ValueError,match='successful completions'):
+        build_epoch_series(run,summary)
 
 
 def test_resample_to_progress_bins_monotonic() -> None:
@@ -178,6 +194,7 @@ def test_generate_visualizations_creates_expected_outputs(tmp_path: Path) -> Non
                 "jobs_per_sec": 46.10,
                 "wall_clock_total_s": 531.9059,
                 "jobs_submitted": 1440,
+                "completed": 1440,
                 "best_fitness_peak": 0.93,
             },
             indent=2,
@@ -205,7 +222,7 @@ def test_generate_visualizations_creates_expected_outputs(tmp_path: Path) -> Non
 
     epoch = next(row for row in outputs["series"] if row.key == "epoch")
     random_local = next(row for row in outputs["series"] if row.key == "random_search")
-    assert math.isclose(epoch.throughput_jobs_per_s, 46.10, rel_tol=0, abs_tol=1e-9)
+    assert math.isclose(epoch.throughput_jobs_per_s, 1440 / 531.9059, rel_tol=0, abs_tol=1e-9)
     assert random_local.total_runtime_s > 10.0
     assert random_local.total_evals == 12.0
     axis_names, raw_metrics, _ = compute_radar_metrics(outputs["series"])

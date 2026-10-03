@@ -88,3 +88,14 @@ The historical README reports 1,440 submissions over 531.906 seconds, implying
 artifacts are absent, so even 2.707 is arithmetic on reported inputs, not a new
 reproduction or a successful-completion measurement. Old search-quality claims
 are not revalidated by these infrastructure tests.
+
+Cross-run ranking, reports and comparison data reconstruct successful completions
+over the total observed run clock for every summary schema. They do not compare
+historical modeled fields against schema-2 observed fields. Missing/invalid
+successful counts or total clocks stay unknown; ranking skips them and plots
+require complete observations. Submitted/returned counts are not successful counts.
+The Poetry wheel includes `durable`; `python scripts/check_wheel.py` builds the
+actual wheel, installs it into a fresh dependency-free environment and verifies
+installed imports and the experiment CLI. CI checks this alongside the summary
+consumers. Recorded artifact bytes are preserved by scoped Git attributes and
+checked against their hashes in the fresh Linux checkout.

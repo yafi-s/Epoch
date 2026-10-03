@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from metrics.collector import MetricsStore
+from metrics.summary import observed_throughput, legacy_modeled_throughput, total_elapsed_seconds
 
 
 def _mean(values: list[float]) -> float:
@@ -67,16 +68,20 @@ def _load_reference_row(reference_summary_path: str) -> dict[str, Any] | None:
         return None
 
     data = json.loads(path.read_text(encoding="utf-8"))
+    observed = observed_throughput(data)
     return {
         "name": "Modal GA (g12_p120)",
         "reference_only": True,
         "source_path": str(path),
         "best_fitness_peak": float(data.get("best_fitness_peak", 0.0)),
         "wall_clock_s": float(data.get("wall_clock_s", 0.0)),
-        "wall_clock_total_s": float(data.get("wall_clock_total_s", 0.0)),
+        "wall_clock_total_s": total_elapsed_seconds(data),
         "jobs_submitted": int(data.get("jobs_submitted", data.get("jobs_total", 0))),
         "jobs_returned": int(data.get("jobs_returned", 0)),
-        "jobs_per_sec": float(data.get("jobs_per_sec", 0.0)),
+        "completed": observed.completed if observed else None,
+        "jobs_per_sec": observed.jobs_per_sec if observed else None,
+        "legacy_modeled_jobs_per_sec": legacy_modeled_throughput(data),
+        "throughput_scope": "successful_completions_per_total_observed_second" if observed else "unknown",
         "raw_jobs_per_sec": float(data.get("raw_jobs_per_sec", 0.0)),
     }
 
@@ -145,16 +150,22 @@ def write_ranked_report(*, summary: dict[str, Any], output_path: str | Path) -> 
         lines.append("")
         lines.append(
             "| Name | Best peak | Wall clock total (s) | Jobs submitted | Jobs returned | "
-            "Jobs/s | Raw jobs/s | Source |"
+            "Completed/s (total) | Legacy modeled jobs/s | Source |"
         )
         lines.append("|---|---:|---:|---:|---:|---:|---:|---|")
+        observed_rate = reference.get('jobs_per_sec')
+        modeled_rate = reference.get('legacy_modeled_jobs_per_sec')
+        observed_text = f'{observed_rate:.6f}' if observed_rate is not None else 'unknown'
+        modeled_text = f'{modeled_rate:.6f}' if modeled_rate is not None else 'unknown'
+        total_time = reference.get('wall_clock_total_s')
+        total_text = f'{total_time:.6f}' if total_time is not None else 'unknown'
         lines.append(
             f"| {reference.get('name', 'reference')} | "
             f"{reference.get('best_fitness_peak', 0.0):.6f} | "
-            f"{reference.get('wall_clock_total_s', 0.0):.6f} | "
+            f"{total_text} | "
             f"{reference.get('jobs_submitted', 0)} | "
-            f"{reference.get('jobs_returned', 0)} | {reference.get('jobs_per_sec', 0.0):.6f} | "
-            f"{reference.get('raw_jobs_per_sec', 0.0):.6f} | `{reference.get('source_path', '')}` |"
+            f"{reference.get('jobs_returned', 0)} | {observed_text} | "
+            f"{modeled_text} | `{reference.get('source_path', '')}` |"
         )
 
     lines.append("")
