@@ -61,6 +61,38 @@ def test_build_aggregate_summary_ranks_by_median_peak(tmp_path):
     assert ranked[1]["rank"] == 2
     assert summary["reference_row"] is not None
     assert summary["reference_row"]["reference_only"] is True
+    assert summary["reference_row"]["jobs_per_sec"] is None
+    assert summary["reference_row"]["legacy_modeled_jobs_per_sec"] == 46.0
+
+
+def test_reference_report_separates_observed_and_legacy_modeled_rates(tmp_path):
+    path=tmp_path/'reference.json'
+    path.write_text(json.dumps({'metric_schema_version':2,'completed':300,'jobs_submitted':320,
+        'jobs_returned':319,'jobs_per_sec':6.,'legacy_modeled_jobs_per_sec':46.099,
+        'wall_clock_s':50.,'wall_clock_total_s':100.}))
+    summary=build_aggregate_summary(results={},config={},reference_summary_path=str(path))
+    row=summary['reference_row']
+    assert row['jobs_per_sec']==3. and row['completed']==300
+    report=tmp_path/'report.md'
+    write_ranked_report(summary=summary,output_path=report)
+    text=report.read_text()
+    assert 'Completed/s (total)' in text and 'Legacy modeled jobs/s' in text
+    assert '3.000000' in text and '46.099000' in text
+
+
+def test_reference_missing_or_invalid_clock_remains_unknown(tmp_path):
+    for clock in (None,'invalid','missing'):
+        data={'completed':300,'jobs_per_sec':46.099}
+        if clock!='missing':
+            data['wall_clock_total_s']=clock
+        source=tmp_path/'reference.json'
+        source.write_text(json.dumps(data))
+        summary=build_aggregate_summary(results={},config={},reference_summary_path=str(source))
+        assert summary['reference_row']['wall_clock_total_s'] is None
+        assert summary['reference_row']['jobs_per_sec'] is None
+        report=tmp_path/'report.md'
+        write_ranked_report(summary=summary,output_path=report)
+        assert '| unknown |' in report.read_text()
 
 
 def test_write_ranked_report_creates_markdown(tmp_path):

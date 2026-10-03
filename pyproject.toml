@@ -9,6 +9,7 @@ packages = [
     { include = "worker" },
     { include = "metrics" },
     { include = "benchmarks" },
+    { include = "durable" },
 ]
 
 [tool.poetry.dependencies]

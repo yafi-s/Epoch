@@ -313,17 +313,14 @@ def build_epoch_series(
     modal_summary_path = Path(modal_summary_path)
     run_generations = _load_generations(modal_run_path)
     summary = _load_json(modal_summary_path)
-    total_runtime_s = float(
-        summary.get(
-            "wall_clock_total_s",
-            summary.get("wall_clock_s", 0.0),
-        )
-    )
-    total_evals = float(
-        summary.get("jobs_submitted", summary.get("jobs_total", len(run_generations)))
-    )
+    from metrics.summary import observed_throughput
+    observed = observed_throughput(summary)
+    if observed is None:
+        raise ValueError("Epoch comparison needs recorded successful completions and total elapsed time")
+    total_runtime_s = observed.total_elapsed_s
+    total_evals = float(observed.completed)
     peak_fitness = float(summary.get("best_fitness_peak", 0.0))
-    throughput = float(summary.get("jobs_per_sec", 0.0))
+    throughput = observed.jobs_per_sec
     return _series_for_run(
         key="epoch",
         source="modal_single_run",

@@ -2,7 +2,7 @@
 """Rank Modal run summaries by throughput-first priorities.
 
 Priority order:
-1) jobs_per_sec (desc)
+1) successful completions / total observed elapsed seconds (desc)
 2) queue_overhead_p90_pct (asc)
 3) avg_job_ms (asc)
 4) best_fitness_peak (desc)
@@ -14,6 +14,11 @@ import argparse
 import json
 from dataclasses import dataclass
 from pathlib import Path
+import sys
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from metrics.summary import observed_throughput, legacy_modeled_throughput
 
 
 @dataclass
@@ -28,6 +33,8 @@ class RankedRun:
     stop_reason: str
     jobs_submitted: int
     jobs_returned: int
+    completed: int
+    legacy_modeled_jobs_per_sec: float | None
 
 
 def _load_summary(path: Path) -> RankedRun | None:
@@ -57,8 +64,11 @@ def _load_summary(path: Path) -> RankedRun | None:
     if best_fitness_peak is None:
         best_fitness_peak = 0.0
 
-    jobs_per_sec = float(data.get("jobs_per_sec", 0.0))
-    # jobs_per_sec is the canonical throughput metric across summaries.
+    observed = observed_throughput(data)
+    if observed is None:
+        print(f"Skipping {path}: missing valid successful count or total elapsed time")
+        return None
+    jobs_per_sec = observed.jobs_per_sec
     throughput_rank_jps = jobs_per_sec
 
     return RankedRun(
@@ -72,6 +82,8 @@ def _load_summary(path: Path) -> RankedRun | None:
         stop_reason=str(data.get("stop_reason", "unknown")),
         jobs_submitted=int(data.get("jobs_submitted", data.get("jobs_total", 0))),
         jobs_returned=int(data.get("jobs_returned", 0)),
+        completed=observed.completed,
+        legacy_modeled_jobs_per_sec=legacy_modeled_throughput(data),
     )
 
 
@@ -95,7 +107,7 @@ def _print_table(runs: list[RankedRun]) -> None:
     header = (
         "rank",
         "run",
-        "jobs/s",
+        "done/s(total)",
         "q_over_p90%",
         "avg_job_ms",
         "best_peak",
@@ -121,9 +133,9 @@ def _write_markdown(path: Path, runs: list[RankedRun]) -> None:
     lines = [
         "# Ranked Modal Runs",
         "",
-        "Sorted by: jobs_per_sec desc, queue_overhead_p90_pct asc, avg_job_ms asc, best_fitness_peak desc.",
+        "Sorted by successful completions / total observed elapsed seconds desc, queue_overhead_p90_pct asc, avg_job_ms asc, best_fitness_peak desc. Legacy modeled rates are excluded.",
         "",
-        "| Rank | Run | Jobs/s | Queue p90 % | Avg job ms | Best peak | Submitted | Returned | Stop reason |",
+        "| Rank | Run | Completed/s (total) | Queue p90 % | Avg job ms | Best peak | Submitted | Returned | Stop reason |",
         "|---:|---|---:|---:|---:|---:|---:|---:|---|",
     ]
     for idx, run in enumerate(runs, start=1):
