@@ -1,0 +1,8 @@
+{"attempts": 2, "episode": 0, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 457.83250000022235, "worker_exit_code": 73}
+{"attempts": 2, "episode": 1, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 425.28149999998277, "worker_exit_code": 73}
+{"attempts": 2, "episode": 2, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 424.42210000081104, "worker_exit_code": 73}
+{"attempts": 2, "episode": 3, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 459.74480000040785, "worker_exit_code": 73}
+{"attempts": 2, "episode": 4, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 457.58569999998144, "worker_exit_code": 73}
+{"attempts": 2, "episode": 5, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 425.4527000011876, "worker_exit_code": 73}
+{"attempts": 2, "episode": 6, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 429.02589999903284, "worker_exit_code": 73}
+{"attempts": 2, "episode": 7, "lease_seconds": 0.25, "state": "succeeded", "submit_to_recovery_ms": 424.3298000001232, "worker_exit_code": 73}

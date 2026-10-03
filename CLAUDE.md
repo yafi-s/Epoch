@@ -76,13 +76,10 @@ ctest --test-dir build --output-on-failure
 - `first_dispatch` (default): excludes startup/warmup before first dispatch
 - `total`: includes full process wall clock
 
-Primary throughput uses the legacy worker-count model:
-
-`jobs_per_sec = (throughput_worker_count * 1000) / max(avg_job_ms_raw - network_latency_ms, 1)`
-
-Wall-clock adjusted throughput is also emitted for analysis:
-
-`jobs_per_sec_wall_adjusted = jobs_submitted / max(wall_clock_s - jobs_submitted*network_latency_ms/1000, 1e-3)`
+Metric schema 2 reports successful completions divided by observed elapsed seconds.
+`raw_jobs_per_sec` reports submissions per elapsed second. Legacy worker-multiplied
+and network-subtracted formulas are labeled modeled compatibility metrics; neither
+is observed throughput. See docs/DURABLE.md for the historical correction.
 
 Defaults:
 - `network_latency_ms=150`

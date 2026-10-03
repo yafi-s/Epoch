@@ -172,7 +172,8 @@ def compute_convergence_auc(best_bins: list[float]) -> float:
     n = len(best_bins)
     x = np.linspace(0.0, 1.0, n + 1)
     y = np.array([best_bins[0], *best_bins], dtype=float)
-    return float(np.trapz(y, x=x))
+    integrate = np.trapezoid if hasattr(np, "trapezoid") else np.trapz
+    return float(integrate(y, x=x))
 
 
 def compute_time_to_peak_fraction(

@@ -6,6 +6,13 @@ It combines:
 - a Python GA controller for generation-level search
 - Python training workers that can run locally or on Modal GPUs
 
+## Durable offline qualification
+
+A new standard-library execution backend adds SQLite leases, fencing, atomic
+results, tenant quotas, cancellation, and deterministic tool evaluation.
+Run `python -m durable.experiment` and inspect [the design and evidence](docs/DURABLE.md).
+The C++ remote scheduler remains a separate backend.
+
 ## What Epoch Is
 
 Epoch is designed for high-throughput, generation-based optimization where the
@@ -38,7 +45,9 @@ on a 3-seed average basis, using generation-equivalent progress bins.
   - `best_fitness_peak`: `0.942708`
   - `jobs_submitted`: `1440`
   - `wall_clock_total_s`: `531.905978` (~8.87 min)
-  - `jobs_per_sec`: `46.099`
+  - Reported legacy modeled `jobs_per_sec`: `46.099` (not observed throughput)
+- Arithmetic submission rate from the reported totals: `1440 / 531.905978 = 2.707 jobs/s`
+- Historical raw inputs are not checked in; this arithmetic is not a reproduction.
 - Local benchmark setup:
   - algorithms: Random, Grid, Optuna TPE, Differential Evolution, Simulated Annealing
   - seeds: `42,43,44`

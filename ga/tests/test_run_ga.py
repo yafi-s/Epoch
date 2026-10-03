@@ -185,8 +185,9 @@ def test_summary_contains_legacy_and_wall_adjusted_throughput_fields(
     assert summary["avg_job_ms_adjusted"] == pytest.approx(481.0, abs=1e-6)
     assert summary["network_latency_ms"] == pytest.approx(150.0, abs=1e-6)
     assert summary["throughput_worker_count"] == 8
-    assert summary["jobs_per_sec"] == pytest.approx((8.0 * 1000.0) / 481.0, rel=1e-6)
-    assert summary["jobs_per_sec_total"] == pytest.approx((8.0 * 1000.0) / 481.0, rel=1e-6)
+    assert summary["jobs_per_sec"] == pytest.approx(6.0 / 3.786, rel=1e-6)
+    assert summary["legacy_modeled_jobs_per_sec"] == pytest.approx((8.0 * 1000.0) / 481.0, rel=1e-6)
+    assert summary["jobs_per_sec_total"] == pytest.approx(6.0 / 3.786, rel=1e-6)
     assert summary["jobs_per_sec_wall_adjusted"] == pytest.approx(6.0 / (3.786 - 0.9), rel=1e-6)
     assert summary["jobs_per_sec_wall_adjusted_total"] == pytest.approx(
         6.0 / (3.786 - 0.9), rel=1e-6
