@@ -1,0 +1,24 @@
+{
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "schema_version": 1,
+  "command": "python -m durable.experiment",
+  "seed": "fixed episode IDs 0..31",
+  "source_hash_format": "sha256-lf-normalized-text",
+  "source_sha256": {
+    "durable\\__init__.py": "ccd15e7d42c6c496c978c8066199a5703964226b200eadc2aeb5341e8cb756a2",
+    "durable\\adapter.py": "f7bbc91fcb208e27f53cf896e70ba3cfc07cd219c0ad87c1b46b9197cf657be1",
+    "durable\\experiment.py": "98300553d1ee540de177b5c88cd1570d96d4b4065c0b76e15d51810ed5fac7e1",
+    "durable\\population.py": "d0d8fea7fbcc66c4f68ca6edfc4aeb45b224854efea54318ec23def713e19a30",
+    "durable\\store.py": "cdd3b1e7df795faa1e5d3b785987c15fa14aae02aca43630710d9d5cfcdc4730",
+    "durable\\tests\\test_store.py": "9cd5a41065bfd1cf5e970fbddc8e4d452ae2c0ed7db27f7b8a1d12240b978b40"
+  },
+  "artifact_sha256": {
+    "faults.jsonl": "308d7122efec5dbe3a106d90f4c12a9cdba5040078eb1a46b5fb054d9b59323d",
+    "load-jobs.jsonl": "ae2b5ca10b462361872641383a684a4a15fa1edac10d9ec30f90d8df8d070163",
+    "load.jsonl": "f975058668ba61df11dbd121a452a4dff0d7547030baf2696ffb2fbba5f8c41f",
+    "process-loss.jsonl": "ca7b13aa173344a2681f51878b59cf2a3b139e51a9281a71ada1cb8b43f934fa",
+    "retry-baseline.jsonl": "f2898b08fae6eccecd171405ea8a477d757ee2310d00e51a71fd15b6c452b123",
+    "summary.json": "fcd3ab1e124a35f82bbc1f81a07274633504eac43cbca8467ecbe3ef2198b8f6"
+  }
+}

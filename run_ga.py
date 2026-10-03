@@ -510,7 +510,7 @@ def main() -> None:
             network_latency_ms=float(args.network_latency_ms),
         )
     )
-    avg_job_ms_adjusted, jobs_per_sec = _compute_legacy_throughput(
+    avg_job_ms_adjusted, legacy_modeled_jobs_per_sec = _compute_legacy_throughput(
         avg_job_ms_raw=avg_job_ms_raw,
         throughput_worker_count=int(args.throughput_worker_count),
         network_latency_ms=float(args.network_latency_ms),
@@ -524,12 +524,14 @@ def main() -> None:
             network_latency_ms=float(args.network_latency_ms),
         )
     )
-    avg_job_ms_adjusted_total, jobs_per_sec_total = _compute_legacy_throughput(
+    avg_job_ms_adjusted_total, legacy_modeled_jobs_per_sec_total = _compute_legacy_throughput(
         avg_job_ms_raw=avg_job_ms_raw_total,
         throughput_worker_count=int(args.throughput_worker_count),
         network_latency_ms=float(args.network_latency_ms),
     )
     raw_jobs_per_sec_total = (jobs_submitted / total_s) if total_s > 0 else 0.0
+    jobs_per_sec = run_stats.completed / metric_wall_clock_s if metric_wall_clock_s > 0 else 0.0
+    jobs_per_sec_total = run_stats.completed / total_s if total_s > 0 else 0.0
     avg_job_ms = avg_job_ms_raw
 
     generation_kpis = run_stats.generation_kpis
@@ -595,6 +597,10 @@ def main() -> None:
         "wall_clock_total_s": total_s,
         "first_generation_submit_offset_s": float(run_stats.first_generation_submit_offset_s),
         "first_dispatch_offset_s": float(first_dispatch_offset_s),
+        "metric_schema_version": 2,
+        "throughput_scope": "successful_completions_per_observed_elapsed_second",
+        "legacy_modeled_jobs_per_sec": legacy_modeled_jobs_per_sec,
+        "legacy_modeled_jobs_per_sec_total": legacy_modeled_jobs_per_sec_total,
         "jobs_per_sec": jobs_per_sec,
         "jobs_per_sec_total": jobs_per_sec_total,
         "raw_jobs_per_sec": raw_jobs_per_sec,
@@ -611,8 +617,7 @@ def main() -> None:
         "network_latency_ms": float(args.network_latency_ms),
         "throughput_worker_count": int(args.throughput_worker_count),
         "jobs_per_sec_formula": (
-            "jobs_per_sec = (throughput_worker_count * 1000) / "
-            "max(avg_job_ms_raw - network_latency_ms, 1)"
+            "jobs_per_sec = completed / wall_clock_s"
         ),
         "jobs_per_sec_wall_adjusted_formula": (
             "jobs_per_sec_wall_adjusted = jobs_submitted / "
@@ -750,8 +755,9 @@ def main() -> None:
         f"(source={args.metric_clock_source}, fallback={metric_clock_fallback_to_total})"
     )
     print(f"  Throughput:     {jobs_per_sec:.2f} jobs/sec")
-    print(f"  Raw throughput: {raw_jobs_per_sec:.2f} jobs/sec")
+    print(f"  Submission rate: {raw_jobs_per_sec:.2f} jobs/sec")
     print(f"  Throughput(total): {jobs_per_sec_total:.2f} jobs/sec")
+    print(f"  Modeled legacy: {legacy_modeled_jobs_per_sec:.2f} jobs/sec (not observed)")
     print(f"  Avg time/job:   {avg_job_ms_raw:.0f}ms raw / {avg_job_ms_adjusted:.0f}ms adjusted")
     print(f"  Best fitness:   {final_pop.best_fitness:.4f}")
     print(f"  Peak fitness:   {best_fitness_peak:.4f}")

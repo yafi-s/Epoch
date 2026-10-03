@@ -1,0 +1,120 @@
+{
+  "episodes": 224,
+  "terminal_counts": {
+    "succeeded": 128,
+    "failed": 64,
+    "cancelled": 32
+  },
+  "atomic_effects": 128,
+  "duplicate_atomic_effects": 0,
+  "silent_loss": 0,
+  "real_process_exits": 8,
+  "recovery_p99_ms": 459.74480000040785,
+  "admission": {
+    "offered": 64,
+    "admitted": 16,
+    "rejected": 48,
+    "active_bound": 16,
+    "terminal_cancellations": 16
+  },
+  "loads": [
+    {
+      "workers": 1,
+      "offered": 256,
+      "admitted": 256,
+      "completed": 256,
+      "offered_admission_rate_per_s": 891.8350411765348,
+      "observed_completion_rate_per_s": 301.1345597427694,
+      "elapsed_s": 0.8501183000007586,
+      "latency_p50_ms": 497.56312370300293,
+      "latency_p99_ms": 561.6970062255859,
+      "queue_wait_p99_ms": 560.2302551269531,
+      "scope": "burst of deterministic CPU tool fixtures; includes all submissions and SQLite commits",
+      "repeat": 0
+    },
+    {
+      "workers": 1,
+      "offered": 256,
+      "admitted": 256,
+      "completed": 256,
+      "offered_admission_rate_per_s": 874.0527538633215,
+      "observed_completion_rate_per_s": 304.08719320145843,
+      "elapsed_s": 0.8418638000002829,
+      "latency_p50_ms": 498.66509437561035,
+      "latency_p99_ms": 549.8740673065186,
+      "queue_wait_p99_ms": 549.3574142456055,
+      "scope": "burst of deterministic CPU tool fixtures; includes all submissions and SQLite commits",
+      "repeat": 1
+    },
+    {
+      "workers": 1,
+      "offered": 256,
+      "admitted": 256,
+      "completed": 256,
+      "offered_admission_rate_per_s": 852.2685658022575,
+      "observed_completion_rate_per_s": 294.36601838646544,
+      "elapsed_s": 0.8696656000010989,
+      "latency_p50_ms": 524.8284339904785,
+      "latency_p99_ms": 577.2230625152588,
+      "queue_wait_p99_ms": 576.2150287628174,
+      "scope": "burst of deterministic CPU tool fixtures; includes all submissions and SQLite commits",
+      "repeat": 2
+    },
+    {
+      "workers": 4,
+      "offered": 256,
+      "admitted": 256,
+      "completed": 256,
+      "offered_admission_rate_per_s": 854.3280559644688,
+      "observed_completion_rate_per_s": 240.1136713125926,
+      "elapsed_s": 1.0661617000005208,
+      "latency_p50_ms": 524.1224765777588,
+      "latency_p99_ms": 592.5369262695312,
+      "queue_wait_p99_ms": 591.1166667938232,
+      "scope": "burst of deterministic CPU tool fixtures; includes all submissions and SQLite commits",
+      "repeat": 0
+    },
+    {
+      "workers": 4,
+      "offered": 256,
+      "admitted": 256,
+      "completed": 256,
+      "offered_admission_rate_per_s": 906.2886876409538,
+      "observed_completion_rate_per_s": 243.33710220681536,
+      "elapsed_s": 1.0520384999999806,
+      "latency_p50_ms": 484.87162590026855,
+      "latency_p99_ms": 547.4345684051514,
+      "queue_wait_p99_ms": 546.7188358306885,
+      "scope": "burst of deterministic CPU tool fixtures; includes all submissions and SQLite commits",
+      "repeat": 1
+    },
+    {
+      "workers": 4,
+      "offered": 256,
+      "admitted": 256,
+      "completed": 256,
+      "offered_admission_rate_per_s": 899.8852997813875,
+      "observed_completion_rate_per_s": 269.8973947103661,
+      "elapsed_s": 0.948508599998604,
+      "latency_p50_ms": 481.3389778137207,
+      "latency_p99_ms": 534.8551273345947,
+      "queue_wait_p99_ms": 534.1212749481201,
+      "scope": "burst of deterministic CPU tool fixtures; includes all submissions and SQLite commits",
+      "repeat": 2
+    }
+  ],
+  "baseline": {
+    "name": "in-memory retry queue without fencing",
+    "scope": "executed logical fault comparison, not performance measurement",
+    "episodes": 224,
+    "lost_on_restart": 32,
+    "duplicate_effects": 64,
+    "wrong_terminal_outcomes": 96
+  },
+  "limits": [
+    "No remote workers, LLM evaluation, external side effects, or production use measured.",
+    "224 fault episodes use a logical clock; eight separate process exits use wall time.",
+    "Exactly-once guarantee applies only to the same SQLite transaction.",
+    "Process exit is not power-loss or filesystem corruption testing."
+  ]
+}
